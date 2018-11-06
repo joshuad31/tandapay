@@ -21,10 +21,15 @@ contract ITandaPayLedgerInfo {
 		PostPeriod,		// 3 days
 	};
 
+	enum ClaimState {
+		Opened,
+		Paid,
+		Rejected
+	};
+
 // Info:
 	function getGroupInfo(uint _groupID) public view 
 		returns(uint subgroupsTotal, uint monthToRepayTheLoan, uint premiumCostDai, uint maxClaimDai); 
-
 	// premiumsTotalDai = total premiums + overpayment by this group
 	function getGroupInfo2(uint _groupID) public view 
 		returns(uint premiumsTotalDai, uint loanRepaymentTotalDai); 
@@ -37,7 +42,6 @@ contract ITandaPayLedgerInfo {
 	// only during the pre-period
 	function getAmountToPay(uint _groupID, address _policyholder) public view 
 		returns(uint premiumDai, uint overpaymentDai, uint loanRepaymentDai);
-
 	function getCurrentPeriod(uint _groupID) public view 
 		returns(uint8 periodIndex, SubperiodType subperiodType);
 
@@ -45,5 +49,11 @@ contract ITandaPayLedgerInfo {
 	//function getCurrentSubperiodInfo(uint _groupID) public view 
   //  returns();
 
+	// only during active period and post-period
+	function getClaimCount(uint _groupID, uint _periodIndex) public view 
+		returns(uint countOut);
 
+	// only during active period and post-period
+	function getClaim(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
+		returns(address claimant, ClaimState claimState, uint claimAmountDai);
 }
