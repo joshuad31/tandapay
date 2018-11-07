@@ -1,19 +1,4 @@
-var DaoBaseWithUnpackers = artifacts.require('./DaoBaseWithUnpackers');
-var StdDaoToken = artifacts.require('./StdDaoToken');
-var DaoStorage = artifacts.require('./DaoStorage');
-var DaoBaseWithUnpackers = artifacts.require('./DaoBaseWithUnpackers');
-var GenericProposal = artifacts.require("./GenericProposal");
-var DaoClient = artifacts.require("./DaoClient");
-
-// to check how upgrade works with IDaoBase clients
-
-var MoneyFlow = artifacts.require('./MoneyFlow');
-var IWeiReceiver = artifacts.require('./IWeiReceiver');
-var IProposal = artifacts.require('./IProposal');
-
-function KECCAK256 (x) {
-  return web3.sha3(x);
-}
+var TandaPayLedger = artifacts.require("./TandaPayLedger");
 
 require('chai')
   .use(require('chai-as-promised'))
@@ -31,8 +16,33 @@ contract('ITandaPayLedger', (accounts) => {
 
   });
 
-  describe('addObserver()', function () {
-    it('Should add observer to daoBase',async() => {
+  describe('transferBackendAccount()', function () {
+    it('Should not be callable by non backend account',async() => {
+    });
+
+    it('Should change the backend account',async() => {
+    });
+  });
+
+  describe('transferCronAccount()', function () {
+    it('Should not be callable by non backend account',async() => {
+    });
+
+    it('Should change the cron account',async() => {
+    });
+  });
+
+  describe('createNewTandaGroup()', function () {
+    it('Should not be callable by non backend account',async() => {
+    });
+
+    it('Should not be callable with different count of _policyholders and _policyholderSubgroups',async() => {
+    });
+
+    it('Should not be callable with _policyholders.count less than GROUP_SIZE_AT_CREATION_MIN',async() => {
+    });
+
+    it('Should not be callable with _policyholders.count more than GROUP_SIZE_AT_CREATION_MAX',async() => {
     });
   });
 });

@@ -1,7 +1,7 @@
 pragma solidity ^0.4.23;
 
-import "./ILedgerInfo.sol";
-import "./ILedger.sol";
+import "./ITandaPayLedger.sol";
+import "./ITandaPayLedgerInfo.sol";
 
 ///////////////////////////////////////////////
 // TODO:
