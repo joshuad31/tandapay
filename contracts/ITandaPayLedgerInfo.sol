@@ -1,6 +1,9 @@
 pragma solidity ^0.4.23;
 
-// TODO: still not ready
+/**
+* @title ITandaPayLedgerInfo 
+* @dev TandaPayLedgerInfo interface
+*/
 contract ITandaPayLedgerInfo {
 	function getTandaGroupCountForSecretary(address _secretary) public view returns(uint count);
 	function getTandaGroupIDForSecretary(address _secretary, uint _index) public view returns(uint groupID);

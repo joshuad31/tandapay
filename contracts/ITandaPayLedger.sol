@@ -1,9 +1,9 @@
 pragma solidity ^0.4.23;
 
 /**
- * @title ITandaPayLedger 
- * @dev Main TandaPay contract that keeps track of all groups
- */
+* @title ITandaPayLedger 
+* @dev Main TandaPayLedger interface
+*/
 contract ITandaPayLedger {
 	modifier onlyByBackend() {
 		// TODO:
@@ -25,15 +25,15 @@ contract ITandaPayLedger {
 	function transferCronAccount(address _newAccount) public onlyByBackend;
 
 	/**
-	 * @dev Create new Group and start the first period automatically.
-	 * @param _policyholders Array of all policyholder addresses;
-	 * Min size is GROUP_SIZE_AT_CREATION_MIN; Max size is GROUP_SIZE_AT_CREATION_MAX.
-	 * @param _policyholderSubgroups Array of subgroup indexes for each policyholders from _policyholders array.
-	 * @param _monthToRepayTheLoan Max is MONTH_TO_REPAY_LOAN_MAX; Min is MONTH_TO_REPAY_LOAN_MIN.
-	 * @param _premiumCostDai Specified in Wei, 1 DAI is 10^18.
-	 * @param _maxClaimDai Specified in Wei, 1 DAI is 10^18.
-	 * @return groupID New group ID.
-	 */
+	* @dev Create new Group and start the first period automatically.
+	* @param _policyholders Array of all policyholder addresses;
+	* Min size is GROUP_SIZE_AT_CREATION_MIN; Max size is GROUP_SIZE_AT_CREATION_MAX.
+	* @param _policyholderSubgroups Array of subgroup indexes for each policyholders from _policyholders array.
+	* @param _monthToRepayTheLoan Max is MONTH_TO_REPAY_LOAN_MAX; Min is MONTH_TO_REPAY_LOAN_MIN.
+	* @param _premiumCostDai Specified in Wei, 1 DAI is 10^18. Example: $20
+	* @param _maxClaimDai Specified in Wei, 1 DAI is 10^18. Example: $500
+	* @return groupID New group ID.
+	*/
 	function createNewTandaGroup(
 		address[] _policyholders,
 		uint8[] _policyholderSubgroups,
@@ -42,36 +42,39 @@ contract ITandaPayLedger {
 		uint _maxClaimDai) public onlyByBackend returns(uint groupID);
 
 	/**
-	 * @dev Add new claim. The claim amount will be automatically calculated.
-	 * Claimant can’t open more that 1 claim at once.
-	 * @param _groupID Selected group ID.
-	 * @param _claimantAddress This address will receive claim payout. 
-	 * @return claimID New claim ID.
-	 */
+	* @dev Add new claim. The claim amount will be automatically calculated.
+	* @notice Preconditions:
+	* 1. Claimant can’t open more that 1 claim at once
+	* 2. Claimant (policyholder) address is valid (current group/subgroup)
+	* 3. Group is in the active state
+	* @param _groupID Selected group ID.
+	* @param _claimantAddress This address will receive claim payout. 
+	* @return claimIndex New claim Index.
+	*/
 	function addClaim(
 		uint _groupID, 
-		address _claimantAddress) public onlyByBackend returns(uint claimID);
+		address _claimantAddress) public onlyByBackend returns(uint claimIndex);
 
 // Policyholder:
 	/**
-	 * @dev Commit premium. Called by policyholder after DAIs are transferred from wallet to current smart contract.
-	 * 1. Policyholder address is valid (current group/subgroup)
-	 * 2. Policyholder allowed smart contract to withdraw correct amount of
-	 * DAIs (approve/allow) - see “Calculating the Individual Loan Payment value”, i.e: $37.5)
-	 * 3. Group is in the pre-period state (72 hours)
-	 * 4. Subgroup has >=5 members and <=7 members
-	 * 5. User hasn’t paid before
-	 * 6. User is a member of the selected Subgroup
-	 * @param _groupID Selected group ID.
-	 * @param _amountDai Amount of commited to the current contract ERC20 DAIs.
-	 */
+	* @dev Commit premium. Called by policyholder after DAIs are transferred from wallet to current smart contract.
+	* @notice Preconditions:
+	* 1. Policyholder address is valid (current group/subgroup)
+	* 2. Policyholder allowed smart contract to withdraw correct amount of
+	* DAIs (approve/allow) - see “Calculating the Individual Loan Payment value”, i.e: $37.5)
+	* 3. Group is in the pre-period state (72 hours)
+	* 4. User hasn’t paid before
+	* @param _groupID Selected group ID.
+	* @param _amountDai Amount of commited to the current contract ERC20 DAIs.
+	*/
 	function commitPremium(
 		uint _groupID, 
 		uint _amountDai) public onlyByPolicyholder(_groupID);
 
 	/**
 	* @dev If policyholder wants to change the group -> should call this.
-	* Preconditions:
+  * The subgroup will be changed automatically when the active period ends.
+	* @notice Preconditions:
 	* 1. Policyholder address is valid (current group/subgroup)
 	* 2. Group is in the active state (first 27 days only!)
 	* 3. User has no open claims
@@ -86,7 +89,7 @@ contract ITandaPayLedger {
 	/**
 	* @dev Finalize the opened claim by selecting either Loyalist or Defector option.
   * When post-period ends -> claimant will received money if allowed.
-	* Preconditions:
+	* @notice Preconditions:
   * 1. Policyholder address is valid (current group/subgroup).
 	* 2. Group is in post-period state.
 	* 3. User hasn’t selected loyalist/defector option before (for that claim).
@@ -95,7 +98,7 @@ contract ITandaPayLedger {
   */
 	function finalizeClaim(
 		uint _groupID, 
-		uint _claimID,
+		uint _claimIndex,
 		bool _loyalist) public onlyByPolicyholder(_groupID);
 
 	/**
