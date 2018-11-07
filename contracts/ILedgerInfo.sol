@@ -10,7 +10,10 @@ contract ITandaPayLedgerInfo {
 	enum PolicyholderStatus {
 		PremiumUnpaid,
 		PremiumPaid,
-		OpenedClaim,
+		OpenedClaim
+	};
+
+	enum PolicyholderClaimStatus {
 		Loyalist,
 		Defector
 	};
@@ -23,37 +26,36 @@ contract ITandaPayLedgerInfo {
 
 	enum ClaimState {
 		Opened,
+		Finalizing,
 		Paid,
 		Rejected
 	};
 
 // Info:
 	function getGroupInfo(uint _groupID) public view 
-		returns(uint subgroupsTotal, uint monthToRepayTheLoan, uint premiumCostDai, uint maxClaimDai); 
-	// premiumsTotalDai = total premiums + overpayment by this group
+		returns(address secretary, uint subgroupsTotal, uint monthToRepayTheLoan, uint premiumCostDai, uint maxClaimDai); 
 	function getGroupInfo2(uint _groupID) public view 
-		returns(uint premiumsTotalDai, uint loanRepaymentTotalDai); 
+		returns(uint premiumsTotalDai, uint overpaymentTotalDai, uint loanRepaymentTotalDai); 
+
 	function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view 
 		returns(uint policyholdersCount, address[] policyholders);
-
 	function getPolicyholderInfo(uint _groupID, address _policyholder) public view 
 		returns(uint8 currentSubgroupIndex, uint8 nextSubgroupIndex, PolicyholderStatus status);
 
 	// only during the pre-period
 	function getAmountToPay(uint _groupID, address _policyholder) public view 
 		returns(uint premiumDai, uint overpaymentDai, uint loanRepaymentDai);
-	function getCurrentPeriod(uint _groupID) public view 
+	function getCurrentPeriodInfo(uint _groupID) public view 
 		returns(uint8 periodIndex, SubperiodType subperiodType);
-
-	// TODO: not needed?
-	//function getCurrentSubperiodInfo(uint _groupID) public view 
-  //  returns();
 
 	// only during active period and post-period
 	function getClaimCount(uint _groupID, uint _periodIndex) public view 
 		returns(uint countOut);
-
 	// only during active period and post-period
-	function getClaim(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
+	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
 		returns(address claimant, ClaimState claimState, uint claimAmountDai);
+
+	// TODO: payout history
+	function getClaimInfo2(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
+		returns(address[] loyalists, address[] defectors);
 }
