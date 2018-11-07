@@ -94,7 +94,7 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should fail if policyholder (_claimantAddress) is not in the current group',async() => {
 			});
 
-			it('Should fail if policyholder is not in the current group',async() => {
+			it('Should fail if policyholder has not paid during pre-period',async() => {
 			});
 
 			it('Should fail if policyholder has already opened claim',async() => {
@@ -159,10 +159,20 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should fail if wrong claim index',async() => {
 			});
 
+			// TODO:
+			/*
+			it('Should fail if user has opened claim',async() => {
+				// this logics and check are NOT IMPLEMENTED!!!
+			});
+			*/
+
 			it('Should fail if period!=post-period',async() => {
 			});
 
-			it('Should fail if user already finalized',async() => {
+			it('Should fail if user already finalized (selected loyalist/defector option before)',async() => {
+			});
+
+			it('Should auto choose <loyalist> if no answer in 3 days (when post period ended)',async() => {
 			});
 		});
 

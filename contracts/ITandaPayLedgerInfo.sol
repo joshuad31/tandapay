@@ -35,11 +35,12 @@ contract ITandaPayLedgerInfo {
 	}
 
 // Info:
+	// this should never change after group is created
 	function getGroupInfo(uint _groupID) public view 
 		returns(address secretary, uint subgroupsTotal, uint monthToRepayTheLoan, uint premiumCostDai, uint maxClaimDai); 
+	
 	function getGroupInfo2(uint _groupID) public view 
 		returns(uint premiumsTotalDai, uint overpaymentTotalDai, uint loanRepaymentTotalDai); 
-
 	function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view 
 		returns(uint policyholdersCount, address[] policyholders);
 	function getPolicyholderInfo(uint _groupID, address _policyholder) public view 

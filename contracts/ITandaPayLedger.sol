@@ -47,6 +47,7 @@ contract ITandaPayLedger {
 	* 1. Claimant can’t open more that 1 claim at once
 	* 2. Claimant (policyholder) address is valid (current group/subgroup)
 	* 3. Group is in the active state
+  * 4. Claimant paid premium before (pre-period)
 	* @param _groupID Selected group ID.
 	* @param _claimantAddress This address will receive claim payout. 
 	* @return claimIndex New claim Index.
