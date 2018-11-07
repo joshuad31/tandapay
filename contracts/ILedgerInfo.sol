@@ -11,25 +11,25 @@ contract ITandaPayLedgerInfo {
 		PremiumUnpaid,
 		PremiumPaid,
 		OpenedClaim
-	};
+	}
 
 	enum PolicyholderClaimStatus {
 		Loyalist,
 		Defector
-	};
+	}
 
 	enum SubperiodType {
 		PrePeriod,		// 3 days
 		ActivePeriod, // 30 days
-		PostPeriod,		// 3 days
-	};
+		PostPeriod		// 3 days
+	}
 
 	enum ClaimState {
 		Opened,
 		Finalizing,
 		Paid,
 		Rejected
-	};
+	}
 
 // Info:
 	function getGroupInfo(uint _groupID) public view 

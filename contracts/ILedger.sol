@@ -5,6 +5,16 @@ pragma solidity ^0.4.23;
  * @dev Main TandaPay contract that keeps track of all groups
  */
 contract ITandaPayLedger {
+	modifier onlyByBackend() {
+		// TODO:
+		_; 
+	}
+
+	modifier onlyByPolicyholder(uint groupID){
+		// TODO:
+		_;
+	}
+
 	uint public GROUP_SIZE_AT_CREATION_MIN = 50;
 	uint public GROUP_SIZE_AT_CREATION_MAX = 55;
 	uint8 public MONTH_TO_REPAY_LOAN_MIN = 3;
