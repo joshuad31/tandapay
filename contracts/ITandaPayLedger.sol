@@ -74,7 +74,7 @@ contract ITandaPayLedger {
 
 	/**
 	* @dev If policyholder wants to change the group -> should call this.
-  * The subgroup will be changed automatically when the active period ends.
+	* The subgroup will be changed automatically when the active period ends.
 	* @notice Preconditions:
 	* 1. Policyholder address is valid (current group/subgroup)
 	* 2. Group is in the active state (first 27 days only!)
@@ -88,25 +88,25 @@ contract ITandaPayLedger {
 		uint _newSubgroupID) public onlyByPolicyholder(_groupID);
 
 	/**
-	* @dev Finalize the opened claim by selecting either Loyalist or Defector option.
-  * When post-period ends -> claimant will received money if allowed.
+	* @dev Finalize all opened claims by selecting either Loyalist or Defector option.
+	* When post-period ends -> claimants will received money if allowed.
 	* @notice Preconditions:
-  * 1. Policyholder address is valid (current group/subgroup).
+	* 1. Policyholder address is valid (current group/subgroup).
 	* 2. Group is in post-period state.
-	* 3. User hasn’t selected loyalist/defector option before (for that claim).
-  * 4. Claim ID is valid.
+	* 3. User hasn’t selected loyalist/defector option before.
+	* 4. User hasn’t opened claim in this period (in this case he is loyalist by default)
+	* 5. Claim ID is valid.
 	* @param _groupID Selected group ID.
-  */
-	function finalizeClaim(
+	*/
+	function finalizeClaims(
 		uint _groupID, 
-		uint _claimIndex,
 		bool _loyalist) public onlyByPolicyholder(_groupID);
 
 	/**
 	* @dev Change the current group state (move periods, do payments, change subgroups, etc)
-  * @notice This method should be called automatically by each non-view method (that changes the state)
+	* @notice This method should be called automatically by each non-view method (that changes the state)
 	* to make sure current group is in actual state.
-  *
+	*
 	* All read-only methods should RETURN actual state (as if processGroup() was called PRIOR to the call)
 	* @param _groupID Selected group ID.
 	*/

@@ -23,13 +23,13 @@ contract ITandaPayLedgerInfo {
 
 	enum SubperiodType {
 		PrePeriod,		// 3 days
-		ActivePeriod, // 30 days
+		ActivePeriod,	// 30 days
 		PostPeriod		// 3 days
 	}
 
 	enum ClaimState {
-		Opened,
-		Finalizing,
+		Opened,			// no post-period is running currently
+		Finalizing,		// post-perdiod is currently running
 		Paid,
 		Rejected
 	}
@@ -59,7 +59,7 @@ contract ITandaPayLedgerInfo {
 	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
 		returns(address claimant, ClaimState claimState, uint claimAmountDai);
 
-	// TODO: payout history
-	function getClaimInfo2(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
+	// TODO: add payout history to the method
+	function getClaimInfo2(uint _groupID, uint _periodIndex) public view 
 		returns(address[] loyalists, address[] defectors);
 }

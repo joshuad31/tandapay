@@ -149,24 +149,19 @@ contract('TandaPayLedger', (accounts) => {
 			});
 		});
 
-		describe('finalizeClaim()', function () {
+		describe('finalizeClaims()', function () {
 			it('Should not be callable by non policyholder account',async() => {
 			});
 
 			it('Should fail if wrong GroupID',async() => {
 			});
 
-			it('Should fail if wrong claim index',async() => {
-			});
-
-			// TODO:
-			/*
 			it('Should fail if user has opened claim',async() => {
-				// this logics and check are NOT IMPLEMENTED!!!
+
 			});
-			*/
 
 			it('Should fail if period!=post-period',async() => {
+
 			});
 
 			it('Should fail if user already finalized (selected loyalist/defector option before)',async() => {
