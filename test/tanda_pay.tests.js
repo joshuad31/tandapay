@@ -122,6 +122,9 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should fail if premium is paid by policyholder',async() => {
 			});
+
+			it('Should succeed if all params are OK',async() => {
+			});
 		});
 
 
