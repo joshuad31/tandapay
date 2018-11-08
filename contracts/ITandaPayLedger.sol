@@ -47,7 +47,7 @@ contract ITandaPayLedger {
 	* 1. Claimant can’t open more that 1 claim at once
 	* 2. Claimant (policyholder) address is valid (current group/subgroup)
 	* 3. Group is in the active state
-  * 4. Claimant paid premium before (pre-period)
+	* 4. Claimant paid premium before (pre-period)
 	* @param _groupID Selected group ID.
 	* @param _claimantAddress This address will receive claim payout. 
 	* @return claimIndex New claim Index.
@@ -55,6 +55,19 @@ contract ITandaPayLedger {
 	function addClaim(
 		uint _groupID, 
 		address _claimantAddress) public onlyByBackend returns(uint claimIndex);
+	
+	/**
+	* @dev Remove policyholder from the group
+	* @notice Preconditions:
+	* 1. Policyholder address is valid (current group/subgroup)
+	* 2. Policyholder didn’t pay premium in the current period
+	* 3. Group is in the pre-period (3 dys) or in active state (30 days)
+	* @param _groupID Selected group ID.
+	* @param _policyholder Policyholder address.
+	*/
+	function removePolicyholderFromGroup(
+		uint _groupID,
+		address _policyholder) public onlyByBackend;
 
 // Policyholder:
 	/**

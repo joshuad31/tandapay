@@ -107,6 +107,24 @@ contract('TandaPayLedger', (accounts) => {
 			});
 		});
 
+		describe('removePolicyholderFromGroup()', function () {
+			it('Should not be callable by non backend account',async() => {
+			});
+
+			it('Should fail if wrong GroupID',async() => {
+			});
+
+			it('Should fail if policyholder is not in the current group',async() => {
+			});
+
+			it('Should fail if period!=active AND period!=pre-period',async() => {
+			});
+
+			it('Should fail if premium is paid by policyholder',async() => {
+			});
+		});
+
+
 		describe('commitPremium()', function () {
 			it('Should not be callable by non policyholder account',async() => {
 			});
