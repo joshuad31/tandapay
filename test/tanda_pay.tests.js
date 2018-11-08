@@ -165,7 +165,7 @@ contract('TandaPayLedger', (accounts) => {
 				// TODO: check the current subgroup and next subgroup here!
 			});
 
-			it('Should switch group automatically if active period ended',async() => {
+			it('Should switch group automatically if 27 days of active period ended',async() => {
 				// TODO: check the current subgroup and next subgroup here!
 			});
 		});
