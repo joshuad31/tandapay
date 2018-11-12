@@ -6,15 +6,45 @@ require('chai')
   .should();
 
 contract('TandaPayLedger', (accounts) => {
-  const creator = accounts[0];
+	const backend = accounts[0];
+	const outsider = accounts[9];
+	var daiContract;
+	var tandaPayLedger; 
 
-  before(async() => {
+	var policyholders;
+	var policyholderSubgroups;
+	var monthToRepayTheLoan;
+	var premiumCostDai;
+	var maxClaimDai;
 
-  });
+	var GROUP_SIZE_AT_CREATION_MIN;
+	var GROUP_SIZE_AT_CREATION_MAX;
+	var MONTH_TO_REPAY_LOAN_MIN;
+	var MONTH_TO_REPAY_LOAN_MAX;
 
-  beforeEach(async() => {
+	beforeEach(async() => {
+		daiContract = await DaiContract.new(); // TODO: add DaiContract
+		tandaPayLedger = await TandaPayLedger.new(daiContract.address);
 
-  });
+		GROUP_SIZE_AT_CREATION_MIN = (await tandaPayLedger.GROUP_SIZE_AT_CREATION_MIN()).toNumber();
+		GROUP_SIZE_AT_CREATION_MAX = (await tandaPayLedger.GROUP_SIZE_AT_CREATION_MAX()).toNumber();
+		MONTH_TO_REPAY_LOAN_MIN = (await tandaPayLedger.MONTH_TO_REPAY_LOAN_MIN()).toNumber();
+		MONTH_TO_REPAY_LOAN_MAX = (await tandaPayLedger.MONTH_TO_REPAY_LOAN_MAX()).toNumber();
+
+		policyholders = getPolicyholders(GROUP_SIZE_AT_CREATION_MIN);
+		policyholderSubgroups = getSubgroups(GROUP_SIZE_AT_CREATION_MIN);
+		monthToRepayTheLoan = MONTH_TO_REPAY_LOAN_MIN;
+		premiumCostDai = 20e18;
+		maxClaimDai = 500e18;
+
+		var tx = await tandaPayLedger.createNewTandaGroup(policyholders, 
+										 policyholderSubgroups, 
+										 monthToRepayTheLoan, 
+										 premiumCostDai, 
+										 maxClaimDai, 
+										 {from:backend});
+		var id = await getGroudId(tx);		
+	});
 
 	describe('ITandaPayLedgerInfo interface', function(){
 
