@@ -1,4 +1,5 @@
 var TandaPayLedger = artifacts.require("./TandaPayLedger");
+var DaiContract = artifacts.require("./DaiContract");
 
 require('chai')
 	.use(require('chai-as-promised'))
@@ -25,6 +26,7 @@ function getPolicyholders(count) {
 
 contract('TandaPayLedger', (accounts) => {
 	const backend = accounts[0];
+	const secretary = accounts[1];
 	const outsider = accounts[9];
 	var daiContract;
 	var tandaPayLedger; 
@@ -60,7 +62,7 @@ contract('TandaPayLedger', (accounts) => {
 										 monthToRepayTheLoan, 
 										 premiumCostDai, 
 										 maxClaimDai, 
-										 {from:backend});
+										 {from:secretary});
 		var id = await getGroudId(tx);		
 	});
 
@@ -104,7 +106,7 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');				
+												 {from:secretary}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _policyholders.count less than GROUP_SIZE_AT_CREATION_MIN',async() => {
@@ -115,7 +117,7 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');			
+												 {from:secretary}).should.be.rejectedWith('revert');			
 
 			});
 
@@ -127,7 +129,7 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');				
+												 {from:secretary}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _monthToRepayTheLoan less than MONTH_TO_REPAY_LOAN_MIN',async() => {
@@ -137,7 +139,7 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoanModified, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');			
+												 {from:secretary}).should.be.rejectedWith('revert');			
 			});
 
 			it('Should not be callable with _monthToRepayTheLoan more than MONTH_TO_REPAY_LOAN_MAX',async() => {
@@ -147,7 +149,7 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoanModified, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');			
+												 {from:secretary}).should.be.rejectedWith('revert');			
 
 			});
 			
@@ -158,7 +160,7 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoan, 
 												 premiumCostDaiModified, 
 												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');				
+												 {from:secretary}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _maxClaimDai==0',async() => {
@@ -168,7 +170,7 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDaiModified, 
-												 {from:backend}).should.be.rejectedWith('revert');				
+												 {from:secretary}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _maxClaimDai>=(_premiumCostDai * group count)',async() => { // TODO: it was "* group count". mb subGroup?
@@ -178,7 +180,7 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDaiModified, 
-												 {from:backend}).should.be.rejectedWith('revert');
+												 {from:secretary}).should.be.rejectedWith('revert');
 			});
 
 			/*
@@ -197,13 +199,16 @@ contract('TandaPayLedger', (accounts) => {
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:backend});
+												 {from:secretary});
 				var id2 = await getGroudId(tx2);	
 				assert.isTrue(id2!=id);
 			});
 		});
 
 		describe('addClaim()', function () {
+				// TODO: commitPremium amount should be... ?
+				// var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				// var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();			
 			it('Should not be callable by non backend account',async() => {
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
 				await passHours(3*24);
@@ -382,7 +387,7 @@ contract('TandaPayLedger', (accounts) => {
 				await passHours(33*24);		
 				await tandaPayLedger.finalizeClaims(id+1, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
-
+ъ
 			it('Should fail if user has opened claim',async() => {
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
 				await passHours(3*24);
