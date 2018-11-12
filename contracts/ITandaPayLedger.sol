@@ -87,7 +87,7 @@ contract ITandaPayLedger {
 
 	/**
 	* @dev If policyholder wants to change the group -> should call this.
-	* The subgroup will be changed automatically when the active period ends.
+	* The subgroup will be changed automatically when the 27 days of active period ends.
 	* @notice Preconditions:
 	* 1. Policyholder address is valid (current group/subgroup)
 	* 2. Group is in the active state (first 27 days only!)
