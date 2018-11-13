@@ -180,7 +180,6 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should not be callable with _maxClaimDai>=(_premiumCostDai * group count)',async() => { 
-			// TODO: it was "* group count". mb subGroup?
 				var maxClaimDaiModified = premiumCostDai * GROUP_SIZE_AT_CREATION_MIN;
 				await tandaPayLedger.createNewTandaGroup(secretary,
 												 policyholders, 
@@ -290,13 +289,25 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if premium is paid by policyholder',async() => {
-
 				await getPremiumFor(id, policyholders[0]);
 				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should succeed if all params are OK',async() => {
+				var subgroupIndex = 0;
+				var info = await tandaPayLedger.getSubgroupInfo(id, subgroupIndex).should.be.fulfilled;
+				assert.equal(info[0], 5);
+				for(var i=0; i<5; i++) {
+					assert.equal(info[1][i], policyholders[i]);	
+				}
+
 				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend}).should.be.fulfilled;
+
+				var info = await tandaPayLedger.getSubgroupInfo(id, subgroupIndex).should.be.fulfilled;
+				assert.equal(info[0], 4);
+				for(var i=0; i<4; i++) {
+					assert.equal(info[1][i], policyholders[i+1]);	
+				}				
 			});
 		});
 
@@ -364,7 +375,7 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should add request to change the subgroup',async() => {
 				await passHours(3*24);
 				var newSubgroup = 1;
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;				
+				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
 				var info = await tandaPayLedger.getSubgroupInfo(id, 0);
 				assert.equal(true, isInPolicyholderArray(info, policyholders[0]));
 
