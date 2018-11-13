@@ -5,8 +5,6 @@ pragma solidity ^0.4.23;
 * @dev Main TandaPayLedger interface
 */
 contract ITandaPayLedger {
-	address public backendAccount;
-	address public cronAccount;
 	modifier onlyByBackend() {
 		// TODO:
 		_; 

@@ -1,6 +1,11 @@
 var TandaPayLedger = artifacts.require("./TandaPayLedger");
 var DaiContract = artifacts.require("./DaiContract");
 
+import { getSubgroups, 
+	    getPolicyholders, 
+	    getPremiumFor, 
+	    getGroupId } from "./helpers/helpers.js";
+
 require('chai')
   .use(require('chai-as-promised'))
   .use(require('chai-bignumber')(web3.BigNumber))
@@ -459,10 +464,7 @@ contract('TandaPayLedger', (accounts) => {
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 
 				var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();
-				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.ne.fulfilled;
-				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.ne.fulfilled;				
-				await tandaPayLedger.commitPremium(id, shouldPayTotal, {from:policyholders[0]}).should.be.fulfilled;
-
+				await getPremiumFor(id, policyholders[0]);
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 				var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();
 				assert.equal(shouldPayTotal, 0);
@@ -693,9 +695,7 @@ contract('TandaPayLedger', (accounts) => {
 										 {from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var period = 0;
-				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.ne.fulfilled;
-				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.ne.fulfilled;				
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+				await getPremiumFor(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -717,9 +717,7 @@ contract('TandaPayLedger', (accounts) => {
 										 maxClaimDai, 
 										 {from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
-				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.ne.fulfilled;
-				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.ne.fulfilled;				
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+				await getPremiumFor(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -737,9 +735,7 @@ contract('TandaPayLedger', (accounts) => {
 										 maxClaimDai, 
 										 {from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
-				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.ne.fulfilled;
-				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.ne.fulfilled;				
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+				await getPremiumFor(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -772,9 +768,7 @@ contract('TandaPayLedger', (accounts) => {
 										 maxClaimDai, 
 										 {from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
-				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.ne.fulfilled;
-				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.ne.fulfilled;				
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+				await getPremiumFor(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -792,9 +786,7 @@ contract('TandaPayLedger', (accounts) => {
 										 maxClaimDai, 
 										 {from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
-				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.ne.fulfilled;
-				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.ne.fulfilled;				
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+				await getPremiumFor(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -815,4 +807,4 @@ contract('TandaPayLedger', (accounts) => {
 		});
 	});
 
-}).should.be.fulfilled;
+})
