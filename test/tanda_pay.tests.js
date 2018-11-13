@@ -45,7 +45,7 @@ contract('TandaPayLedger', (accounts) => {
 	var MONTH_TO_REPAY_LOAN_MAX;
 
 	beforeEach(async() => {
-		daiContract = await DaiContract.new(); // TODO: add DaiContract
+		daiContract = await DaiContract.new();
 		tandaPayLedger = await TandaPayLedger.new(daiContract.address);
 
 		GROUP_SIZE_AT_CREATION_MIN = (await tandaPayLedger.GROUP_SIZE_AT_CREATION_MIN()).toNumber();
@@ -192,7 +192,8 @@ contract('TandaPayLedger', (accounts) => {
 												 {from:backend}).should.be.rejectedWith('revert');				
 			});
 
-			it('Should not be callable with _maxClaimDai>=(_premiumCostDai * group count)',async() => { // TODO: it was "* group count". mb subGroup?
+			it('Should not be callable with _maxClaimDai>=(_premiumCostDai * group count)',async() => { 
+			// TODO: it was "* group count". mb subGroup?
 				var maxClaimDaiModified = premiumCostDai * 10/*subgroup count*/;
 				await tandaPayLedger.createNewTandaGroup(secretary,
 												 policyholders, 
@@ -231,18 +232,24 @@ contract('TandaPayLedger', (accounts) => {
 				// var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 				// var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();			
 			it('Should not be callable by non backend account',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:outsider}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if wrong GroupID',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				await tandaPayLedger.addClaim(id+1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if period!=active',async() => { 
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
@@ -257,6 +264,8 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if policyholder has already opened claim',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -265,6 +274,8 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should open claim and return valid claim index',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -272,6 +283,12 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should open 2 claims and return valid claim indexes',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+
+				await daiContract.mint(policyholders[1], premiumCostDai).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[1]}).should.be.fulfilled;
+
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[1]}).should.be.fulfilled;
 				await passHours(3*24);
@@ -303,6 +320,9 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if premium is paid by policyholder',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
@@ -315,23 +335,33 @@ contract('TandaPayLedger', (accounts) => {
 
 		describe('tandaPayLedger.commitPremium()', function () {
 			it('Should not be callable by non policyholder account',async() => {
+				await daiContract.mint(outsider, premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:outsider}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if wrong GroupID',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id+1, premiumCostDai, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if period!=pre-period',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should fail if user did not approved DAIs',async() => {
-				// TODO: WAT
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 			});
 
 			it('Should fail if user paid before',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
@@ -355,6 +385,8 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if user has open claims',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -410,6 +442,8 @@ contract('TandaPayLedger', (accounts) => {
 			});
 ъ
 			it('Should fail if user has opened claim',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -423,6 +457,8 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if user already finalized (selected loyalist/defector option before)',async() => {
+				await daiContract.mint(policyholders[0], premiumCostDai, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(33*24);
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.fulfilled;
