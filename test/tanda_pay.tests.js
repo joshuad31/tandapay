@@ -27,7 +27,9 @@ function getPolicyholders(count) {
 contract('TandaPayLedger', (accounts) => {
 	const backend = accounts[0];
 	const secretary = accounts[1];
+	const cronAccount = accounts[2];
 	const outsider = accounts[9];
+
 	var daiContract;
 	var tandaPayLedger; 
 
@@ -57,14 +59,15 @@ contract('TandaPayLedger', (accounts) => {
 		premiumCostDai = 20e18;
 		maxClaimDai = 500e18;
 
-		var tx = await tandaPayLedger.createNewTandaGroup(policyholders, 
+		var tx = await tandaPayLedger.createNewTandaGroup(secretary,
+										 policyholders, 
 										 policyholderSubgroups, 
 										 monthToRepayTheLoan, 
 										 premiumCostDai, 
 										 maxClaimDai, 
-										 {from:secretary});
-		var id = await getGroudId(tx);		
-	});
+										 {from:backend}).should.be.fulfilled;
+		var id = await getGroupId(tx);		
+	}).should.be.fulfilled;
 
 	describe('ITandaPayLedger interface', function(){
 
@@ -74,113 +77,130 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should change the backend account',async() => {
-				await tandaPayLedger.transferBackendAccount(outsider, {from:backend});
+				var acc1 = await tandaPayLedger.backendAccount();
+				assert.equal(acc1, backend);
+				await tandaPayLedger.transferBackendAccount(outsider, {from:backend}).should.be.fulfilled;
+				var acc2 = await tandaPayLedger.backendAccount();
+				assert.equal(acc2, outsider);
 			});
 		});
 
 		describe('transferCronAccount()', function () {
 			it('Should not be callable by non backend account',async() => {
+				var acc1 = await tandaPayLedger.backendAccount();
+				assert.equal(acc1, cronAccount);
 				await tandaPayLedger.transferCronAccount(outsider, {from:outsider}).should.be.rejectedWith('revert');
+				var acc2 = await tandaPayLedger.backendAccount();
+				assert.equal(acc2, outsider);
 			});
 
 			it('Should change the cron account',async() => {
-				await tandaPayLedger.transferCronAccount(outsider, {from:backend});
+				await tandaPayLedger.transferCronAccount(outsider, {from:backend}).should.be.fulfilled;
 			});
 		});
 
 		describe('createNewTandaGroup()', function () {
 			it('Should not be callable by non backend account',async() => {
-				await tandaPayLedger.createNewTandaGroup(policyholders, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholders, 
 												 policyholderSubgroups, 
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:outsider}).should.be.rejectedWith('revert');
+												 {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should not be callable with different count of _policyholders and _policyholderSubgroups',async() => {
 				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MAX-1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MAX);
-				await tandaPayLedger.createNewTandaGroup(policyholdersModified, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholdersModified, 
 												 policyholderSubgroupsModified, 
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:secretary}).should.be.rejectedWith('revert');				
+												 {from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _policyholders.count less than GROUP_SIZE_AT_CREATION_MIN',async() => {
 				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MIN-1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MIN-1);
-				await tandaPayLedger.createNewTandaGroup(policyholdersModified, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholdersModified, 
 												 policyholderSubgroupsModified, 
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:secretary}).should.be.rejectedWith('revert');			
+												 {from:backend}).should.be.rejectedWith('revert');			
 
 			});
 
 			it('Should not be callable with _policyholders.count more than GROUP_SIZE_AT_CREATION_MAX',async() => {
 				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MAX+1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MAX+1);
-				await tandaPayLedger.createNewTandaGroup(policyholdersModified, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholdersModified, 
 												 policyholderSubgroupsModified, 
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:secretary}).should.be.rejectedWith('revert');				
+												 {from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _monthToRepayTheLoan less than MONTH_TO_REPAY_LOAN_MIN',async() => {
 				var monthToRepayTheLoanModified = MONTH_TO_REPAY_LOAN_MIN - 1;
-				await tandaPayLedger.createNewTandaGroup(policyholders, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholders, 
 												 policyholderSubgroups, 
 												 monthToRepayTheLoanModified, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:secretary}).should.be.rejectedWith('revert');			
+												 {from:backend}).should.be.rejectedWith('revert');			
 			});
 
 			it('Should not be callable with _monthToRepayTheLoan more than MONTH_TO_REPAY_LOAN_MAX',async() => {
 				var monthToRepayTheLoanModified = MONTH_TO_REPAY_LOAN_MAX + 1;
-				await tandaPayLedger.createNewTandaGroup(policyholders, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholders, 
 												 policyholderSubgroups, 
 												 monthToRepayTheLoanModified, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:secretary}).should.be.rejectedWith('revert');			
+												 {from:backend}).should.be.rejectedWith('revert');			
 
 			});
 			
 			it('Should not be callable with _premiumCostDai==0',async() => {
 				var premiumCostDaiModified = 0;
-				await tandaPayLedger.createNewTandaGroup(policyholders, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholders, 
 												 policyholderSubgroups, 
 												 monthToRepayTheLoan, 
 												 premiumCostDaiModified, 
 												 maxClaimDai, 
-												 {from:secretary}).should.be.rejectedWith('revert');				
+												 {from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _maxClaimDai==0',async() => {
 				var maxClaimDaiModified = 0;
-				await tandaPayLedger.createNewTandaGroup(policyholders, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholders, 
 												 policyholderSubgroups, 
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDaiModified, 
-												 {from:secretary}).should.be.rejectedWith('revert');				
+												 {from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _maxClaimDai>=(_premiumCostDai * group count)',async() => { // TODO: it was "* group count". mb subGroup?
 				var maxClaimDaiModified = premiumCostDai * 10/*subgroup count*/;
-				await tandaPayLedger.createNewTandaGroup(policyholders, 
+				await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholders, 
 												 policyholderSubgroups, 
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDaiModified, 
-												 {from:secretary}).should.be.rejectedWith('revert');
+												 {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			/*
@@ -194,13 +214,14 @@ contract('TandaPayLedger', (accounts) => {
 			*/
 
 			it('Should create 2 groups with different IDs',async() => {
-				var tx2 = await tandaPayLedger.createNewTandaGroup(policyholders, 
+				var tx2 = await tandaPayLedger.createNewTandaGroup(secretary,
+												 policyholders, 
 												 policyholderSubgroups, 
 												 monthToRepayTheLoan, 
 												 premiumCostDai, 
 												 maxClaimDai, 
-												 {from:secretary});
-				var id2 = await getGroudId(tx2);	
+												 {from:backend}).should.be.fulfilled;
+				var id2 = await getGroupId(tx2);	
 				assert.isTrue(id2!=id);
 			});
 		});
@@ -210,19 +231,19 @@ contract('TandaPayLedger', (accounts) => {
 				// var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 				// var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();			
 			it('Should not be callable by non backend account',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:outsider}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if wrong GroupID',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
 				await tandaPayLedger.addClaim(id+1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if period!=active',async() => { 
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
@@ -236,26 +257,26 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if policyholder has already opened claim',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
-				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend});
+				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 
 			});
 
 			it('Should open claim and return valid claim index',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
-				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend});
+				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				assert.equal(claimId, 0);
 			});
 
 			it('Should open 2 claims and return valid claim indexes',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[1]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[1]}).should.be.fulfilled;
 				await passHours(3*24);
-				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend});
-				var claimId2 = await tandaPayLedger.addClaim(id, policyholders[1], {from:backend});
+				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
+				var claimId2 = await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
 				assert.equal(claimId1, 0);
 				assert.equal(claimId2, 1);
 			});
@@ -282,12 +303,12 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if premium is paid by policyholder',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should succeed if all params are OK',async() => {
-				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend});
+				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend}).should.be.fulfilled;
 			});
 		});
 
@@ -311,7 +332,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if user paid before',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 		});
@@ -334,9 +355,9 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if user has open claims',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
-				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend});
+				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				var newSubgroup = 1;
 				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
@@ -344,7 +365,7 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should fail if user already requested subgroup switch',async() => {
 				await passHours(3*24);
 				var newSubgroup = 1;
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]});
+				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.rejectedWith('revert');
 				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup+1, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
@@ -352,7 +373,7 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should add request to change the subgroup',async() => {
 				await passHours(3*24);
 				var newSubgroup = 1;
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]});				
+				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;				
 				var info = await tandaPayLedger.getSubgroupInfo(id, 0);
 				assert.equal(true, isInPolicyholderArray(info, policyholders[0]));
 
@@ -363,7 +384,7 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should switch group automatically if active period ended',async() => {
 				await passHours(3*24);
 				var newSubgroup = 1;
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]});				
+				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;				
 				await passHours(30*24);
 				var info = await tandaPayLedger.getSubgroupInfo(id, 0);
 				assert.equal(false, isInPolicyholderArray(info, policyholders[0]));
@@ -389,9 +410,9 @@ contract('TandaPayLedger', (accounts) => {
 			});
 ъ
 			it('Should fail if user has opened claim',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(3*24);
-				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend});
+				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await passHours(30*24);
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');					
 			});
@@ -402,9 +423,9 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if user already finalized (selected loyalist/defector option before)',async() => {
-				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]});
+				await tandaPayLedger.commitPremium(id, premiumCostDai, {from:policyholders[0]}).should.be.fulfilled;
 				await passHours(33*24);
-				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]});
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
