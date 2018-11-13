@@ -78,6 +78,7 @@ contract ITandaPayLedger {
 	* DAIs (approve/allow) - see “Calculating the Individual Loan Payment value”, i.e: $37.5)
 	* 3. Group is in the pre-period state (72 hours)
 	* 4. User hasn’t paid before
+	* 5. The _amountDai is correct (should be equal to getAmountToPay())
 	* @param _groupID Selected group ID.
 	* @param _amountDai Amount of commited to the current contract ERC20 DAIs.
 	*/
