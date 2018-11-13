@@ -300,6 +300,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 		});
 
+		describe('commitPremium()', function () {			
 			it('Should not be callable by non policyholder account',async() => {
 				var data = await tandaPayLedger.getAmountToPay();
 				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
@@ -319,8 +320,13 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should fail if user paid before',async() => {
 				await getPremiumFor(id, policyholders[0]);
-				await tandaPayLedger.commitPremium(id, amountToPay, {from:outsider}).should.be.rejectedWith('revert');	
+				var data = await tandaPayLedger.getAmountToPay();
+				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
+				await daiContract.mint(policyholders[0], amountToPay, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, amountToPay, {from:outsider}).should.be.fulfilled;
+				await tandaPayLedger.commitPremium(id, amountToPay, {from:outsider}).should.be.rejectedWith('revert');
 			});
+		});
 
 		describe('addChangeSubgroupRequest()', function () {
 			it('Should not be callable by non policyholder account',async() => {
