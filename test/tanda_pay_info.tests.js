@@ -1,20 +1,20 @@
 var TandaPayLedger = artifacts.require("./TandaPayLedger");
 
 require('chai')
-  .use(require('chai-as-promised'))
-  .use(require('chai-bignumber')(web3.BigNumber))
-  .should();
+	.use(require('chai-as-promised'))
+	.use(require('chai-bignumber')(web3.BigNumber))
+	.should();
 
 contract('TandaPayLedger', (accounts) => {
-  const creator = accounts[0];
+	const creator = accounts[0];
 
-  before(async() => {
+	before(async() => {
 
-  });
+	});
 
-  beforeEach(async() => {
+	beforeEach(async() => {
 
-  });
+	});
 
 	describe('ITandaPayLedgerInfo interface', function(){
 
