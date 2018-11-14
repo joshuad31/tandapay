@@ -201,6 +201,32 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should return valid data', async() => {
 			});
+
+			// New tests:
+			it('Should return valid claimAmountDai if claim is still not finalized', async() => {
+				// If claim is still not finalized -> claimAmountDai = (_premiumCostDai * group count) / numberOfOpenClaims
+				// (but never more than _maxClaimDai)
+				
+				// 1 - create 3 claims 
+				// 2 - check the claimAmountDai value
+			});
+
+			it('Should return valid claimAmountDai if claim is finalized and APPROVED', async() => {
+				// If claim is finalized and approved -> claimAmountDai (_premiumCostDai * group count) / numberOfAprovedClaims
+				// (but never more than _maxClaimDai)
+				//
+				// 1 - create 3 claims 
+				// 2 - approve 2 of them
+				// 3 - check the claimAmountDai value for approved claims
+			});
+
+			it('Should return claimAmountDai==ZERO if claim is finalized but REJECTED', async() => {
+				// If claim is finalized and rejected -> claimAmountDai is ZERO
+				//
+				// 1 - create 3 claims 
+				// 2 - approve 2 of them
+				// 3 - check the claimAmountDai value for rejected claims
+			});
 		});
 
 		describe('getClaimInfo2()', function () {
