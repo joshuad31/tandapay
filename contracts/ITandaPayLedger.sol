@@ -26,12 +26,15 @@ contract ITandaPayLedger {
 
 	/**
 	* @dev Create new Group and start the first period automatically.
+	* @notice Preconditions:
+  * 1. Min group size is 50. Max group size is 60.
+	* 2. _maxClaimDai<=(_premiumCostDai * group count) 
 	* @param _policyholders Array of all policyholder addresses;
 	* Min size is GROUP_SIZE_AT_CREATION_MIN; Max size is GROUP_SIZE_AT_CREATION_MAX.
 	* @param _policyholderSubgroups Array of subgroup indexes for each policyholders from _policyholders array.
 	* @param _monthToRepayTheLoan Max is MONTH_TO_REPAY_LOAN_MAX; Min is MONTH_TO_REPAY_LOAN_MIN.
 	* @param _premiumCostDai Specified in Wei, 1 DAI is 10^18. Example: $20
-	* @param _maxClaimDai Specified in Wei, 1 DAI is 10^18. Example: $500
+	* @param _maxClaimDai Specified in Wei, 1 DAI is 10^18. Example: $500. 
 	* @return groupID New group ID.
 	*/
 	function createNewTandaGroup(
@@ -78,6 +81,7 @@ contract ITandaPayLedger {
 	* DAIs (approve/allow) - see “Calculating the Individual Loan Payment value”, i.e: $37.5)
 	* 3. Group is in the pre-period state (72 hours)
 	* 4. User hasn’t paid before
+	* 5. The _amountDai is correct (should be equal to getAmountToPay())
 	* @param _groupID Selected group ID.
 	* @param _amountDai Amount of commited to the current contract ERC20 DAIs.
 	*/

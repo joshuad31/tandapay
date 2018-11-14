@@ -7,11 +7,12 @@ import { getSubgroups,
 	    getGroupId } from "./helpers/helpers.js";
 
 require('chai')
-  .use(require('chai-as-promised'))
-  .use(require('chai-bignumber')(web3.BigNumber))
-  .should();
+	.use(require('chai-as-promised'))
+	.use(require('chai-bignumber')(web3.BigNumber))
+	.should();
 
 contract('TandaPayLedger', (accounts) => {
+<<<<<<< HEAD
 	const backend = accounts[0];
 	const secretary = accounts[1];
 	const outsider = accounts[9];
@@ -43,6 +44,16 @@ contract('TandaPayLedger', (accounts) => {
 		monthToRepayTheLoan = MONTH_TO_REPAY_LOAN_MIN;
 		premiumCostDai = 20e18;
 		maxClaimDai = 500e18;	
+=======
+	const creator = accounts[0];
+
+	before(async() => {
+
+	});
+
+	beforeEach(async() => {
+
+>>>>>>> 3a785d46388b0d4fa54b19fea4b9092e06d7c9b7
 	});
 
 	describe('ITandaPayLedgerInfo interface', function(){
@@ -659,6 +670,9 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return (overlapping) period 0, last 3 days of active and period 1, pre-period', async() => {
+				// 1 - move time 30+ days -> second period starts 
+				// 2 - call getCurrentPeriodInfo() -> should return periodIndex==1 and subperiodType==PrePeriod
+
 				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
 										 policyholders, 
 										 policyholderSubgroups, 
@@ -674,6 +688,9 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return (overlapping) period 0, post-peiod and period 1, active', async() => {
+				// 1 - move time 33+ days -> second period is in the active state
+				// 2 - call getCurrentPeriodInfo() -> should return periodIndex==1 and subperiodType==ActivePeriod
+								
 				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
 										 policyholders, 
 										 policyholderSubgroups, 
@@ -686,6 +703,7 @@ contract('TandaPayLedger', (accounts) => {
 				var data = await tandaPayLedger.getCurrentPeriodInfo(id);
 				assert.equal(data[0].toNumber(), 1);
 				assert.equal(data[1].toNumber(), 0);	
+
 			});
 		});
 
@@ -861,6 +879,32 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(data[1].toNumber(), 0);
 				assert.equal(data[1].toNumber(), maxClaimDai); // claimAmountDai==maxClaimDai coz only one claim
 				// TODO: need to test when claims count > 1
+			});
+
+			// New tests:
+			it('Should return valid claimAmountDai if claim is still not finalized', async() => {
+				// If claim is still not finalized -> claimAmountDai = (_premiumCostDai * group count) / numberOfOpenClaims
+				// (but never more than _maxClaimDai)
+				
+				// 1 - create 3 claims 
+				// 2 - check the claimAmountDai value
+			});
+
+			it('Should return valid claimAmountDai if claim is finalized and APPROVED', async() => {
+				// If claim is finalized and approved -> claimAmountDai (_premiumCostDai * group count) / numberOfAprovedClaims
+				// (but never more than _maxClaimDai)
+				//
+				// 1 - create 3 claims 
+				// 2 - approve 2 of them
+				// 3 - check the claimAmountDai value for approved claims
+			});
+
+			it('Should return claimAmountDai==ZERO if claim is finalized but REJECTED', async() => {
+				// If claim is finalized and rejected -> claimAmountDai is ZERO
+				//
+				// 1 - create 3 claims 
+				// 2 - approve 2 of them
+				// 3 - check the claimAmountDai value for rejected claims
 			});
 		});
 

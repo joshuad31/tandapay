@@ -35,27 +35,80 @@ contract ITandaPayLedgerInfo {
 	}
 
 // Info:
-	// this should never change after group is created
+
+	/**
+	* @dev Get the group basic info that is set in constructor
+	* @notice This info should never change after group is created
+	* @param _groupID Selected group ID
+	*/
 	function getGroupInfo(uint _groupID) public view 
 		returns(address secretary, uint subgroupsTotal, uint monthToRepayTheLoan, uint premiumCostDai, uint maxClaimDai); 
 	
+	/**
+	* @dev Get the group info
+	* @param _groupID Selected group ID
+	*/
 	function getGroupInfo2(uint _groupID) public view 
 		returns(uint premiumsTotalDai, uint overpaymentTotalDai, uint loanRepaymentTotalDai); 
+
+	/**
+	* @dev Get the sub-group info
+	* @param _groupID Selected group ID
+	* @param _subgroupIndex Selected subgroup index
+	*/
 	function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view 
 		returns(uint policyholdersCount, address[] policyholders);
+
+	/**
+	* @dev Get the policyholder Info
+	* @notice If no subgroup change is requested -> currentSubgroupIndex==nextSubgroupIndex
+	* @param _groupID Selected group ID
+	* @param _policyholder Selected policyholder address
+	*/
 	function getPolicyholderInfo(uint _groupID, address _policyholder) public view 
 		returns(uint8 currentSubgroupIndex, uint8 nextSubgroupIndex, PolicyholderStatus status);
 
-	// only during the pre-period
+	/**
+	* @dev Get the amount that should be paid by a policyholder for the current period 
+	* @notice If policyholder has already paid -> will return 0
+	* @notice Only callable during the pre-period
+	* @param _groupID Selected group ID
+	* @param _policyholder Selected policyholder address
+	*/
 	function getAmountToPay(uint _groupID, address _policyholder) public view 
 		returns(uint premiumDai, uint overpaymentDai, uint loanRepaymentDai);
+
+	/**
+	* @dev Get the current period info
+	* @param _groupID Selected group ID
+	*/
 	function getCurrentPeriodInfo(uint _groupID) public view 
 		returns(uint8 periodIndex, SubperiodType subperiodType);
 
-	// only during active period and post-period
+	/**
+	* @dev Get the current claim count 
+	* @notice Only callable during active period and post-period
+	* @param _groupID Selected group ID
+	* @param _periodIndex Selected period index
+	*/
 	function getClaimCount(uint _groupID, uint _periodIndex) public view 
 		returns(uint countOut);
-	// only during active period and post-period
+
+	/**
+	* @dev Get the claim info
+	* @notice Only callable during active period and post-period
+	* @param _groupID Selected group ID
+	* @param _periodIndex Selected period index
+	* @param _claimIndex Selected claim index
+	*
+	* If claim is still not finalized -> claimAmountDai = (_premiumCostDai * group count) / numberOfOpenClaims
+	* (but never more than _maxClaimDai)
+	* 		
+	* If claim is finalized and approved -> claimAmountDai (_premiumCostDai * group count) / numberOfAprovedClaims
+	* (but never more than _maxClaimDai)
+	*	
+	* If claim is finalized and rejected -> claimAmountDai i
+	*/
 	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
 		returns(address claimant, ClaimState claimState, uint claimAmountDai);
 
