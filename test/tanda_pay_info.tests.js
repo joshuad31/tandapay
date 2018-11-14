@@ -181,8 +181,6 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getGroupInfo2()', function () {
-			// TODO: Is this tests section OK?
-			// returns(uint premiumsTotalDai, uint overpaymentTotalDai, uint loanRepaymentTotalDai); 
 			it('Should fail if index is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
 										 policyholders, 
@@ -265,7 +263,7 @@ contract('TandaPayLedger', (accounts) => {
 										 maxClaimDai, 
 										 {from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
-				await passHours(33*24);
+				await passHours(30*24);
 				
 				var groupData = await tandaPayLedger.getGroupInfo2(id).should.be.fulfilled;
 				
@@ -661,7 +659,6 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return (overlapping) period 0, last 3 days of active and period 1, pre-period', async() => {
-				// TODO: overlapping – WAT?
 				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
 										 policyholders, 
 										 policyholderSubgroups, 
@@ -670,14 +667,25 @@ contract('TandaPayLedger', (accounts) => {
 										 maxClaimDai, 
 										 {from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
-				await passHours(33*24);
+				await passHours(30*24);
 				var data = await tandaPayLedger.getCurrentPeriodInfo(id);
 				assert.equal(data[0].toNumber(), 1);
 				assert.equal(data[1].toNumber(), 0);					
 			});
 
 			it('Should return (overlapping) period 0, post-peiod and period 1, active', async() => {
-				// TODO: overlapping – WAT?
+				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
+										 policyholders, 
+										 policyholderSubgroups, 
+										 monthToRepayTheLoan, 
+										 premiumCostDai, 
+										 maxClaimDai, 
+										 {from:backend}).should.be.fulfilled;
+				var id = await getGroudId(tx);
+				await passHours(30*24);
+				var data = await tandaPayLedger.getCurrentPeriodInfo(id);
+				assert.equal(data[0].toNumber(), 1);
+				assert.equal(data[1].toNumber(), 0);	
 			});
 		});
 
@@ -851,7 +859,8 @@ contract('TandaPayLedger', (accounts) => {
 
 				assert.equal(data[0], policyholders[0]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[1].toNumber(), maxClaimDai); // TODO: or not?
+				assert.equal(data[1].toNumber(), maxClaimDai); // claimAmountDai==maxClaimDai coz only one claim
+				// TODO: need to test when claims count > 1
 			});
 		});
 

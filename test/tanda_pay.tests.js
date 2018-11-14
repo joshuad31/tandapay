@@ -311,7 +311,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 		});
 
-		describe('commitPremium()', function () {			
+		describe('commitPremium()', function () {
 			it('Should not be callable by non policyholder account',async() => {
 				var data = await tandaPayLedger.getAmountToPay();
 				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
@@ -337,6 +337,22 @@ contract('TandaPayLedger', (accounts) => {
 				await daiContract.approve(tandaPayLedger.address, amountToPay, {from:outsider}).should.be.fulfilled;
 				await tandaPayLedger.commitPremium(id, amountToPay, {from:outsider}).should.be.rejectedWith('revert');
 			});
+
+			it('Should fail if send LESS',async() => {	
+				var data = await tandaPayLedger.getAmountToPay();
+				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
+				await daiContract.mint(policyholders[0], amountToPay, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, amountToPay, {from:policyholders[0]}).should.be.fulfilled;
+				await tandaPayLedger.commitPremium(id, amountToPay-1, {from:policyholders[0]}).should.be.rejectedWith('revert');
+			});
+
+			it('Should fail if send MORE',async() => {	
+				var data = await tandaPayLedger.getAmountToPay();
+				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
+				await daiContract.mint(policyholders[0], amountToPay, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, amountToPay, {from:policyholders[0]}).should.be.fulfilled;
+				await tandaPayLedger.commitPremium(id, amountToPay+1, {from:policyholders[0]}).should.be.rejectedWith('revert');
+			});						
 		});
 
 		describe('addChangeSubgroupRequest()', function () {
@@ -401,12 +417,12 @@ contract('TandaPayLedger', (accounts) => {
 
 		describe('finalizeClaims()', function () {
 			it('Should not be callable by non policyholder account',async() => {
-				await passHours(33*24);		
+				await passHours(30*24);		
 				await tandaPayLedger.finalizeClaims(id, false, {from:outsider}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if wrong GroupID',async() => {
-				await passHours(33*24);		
+				await passHours(30*24);		
 				await tandaPayLedger.finalizeClaims(id+1, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
@@ -425,7 +441,7 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should fail if user already finalized (selected loyalist/defector option before)',async() => {
 				await getPremiumFor(id, policyholders[0]);
-				await passHours(33*24);
+				await passHours(30*24);
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
