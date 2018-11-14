@@ -160,9 +160,13 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return (overlapping) period 0, last 3 days of active and period 1, pre-period', async() => {
+				// 1 - move time 30+ days -> second period starts 
+				// 2 - call getCurrentPeriodInfo() -> should return periodIndex==1 and subperiodType==PrePeriod
 			});
 
 			it('Should return (overlapping) period 0, post-peiod and period 1, active', async() => {
+				// 1 - move time 33+ days -> second period is in the active state
+				// 2 - call getCurrentPeriodInfo() -> should return periodIndex==1 and subperiodType==ActivePeriod
 			});
 		});
 
