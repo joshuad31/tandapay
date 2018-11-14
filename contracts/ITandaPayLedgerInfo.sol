@@ -55,7 +55,15 @@ contract ITandaPayLedgerInfo {
 	// only during active period and post-period
 	function getClaimCount(uint _groupID, uint _periodIndex) public view 
 		returns(uint countOut);
+
 	// only during active period and post-period
+	// If claim is still not finalized -> claimAmountDai = (_premiumCostDai * group count) / numberOfOpenClaims
+	// (but never more than _maxClaimDai)
+	// 		
+	// If claim is finalized and approved -> claimAmountDai (_premiumCostDai * group count) / numberOfAprovedClaims
+	// (but never more than _maxClaimDai)
+	//
+	// If claim is finalized and rejected -> claimAmountDai is ZERO
 	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
 		returns(address claimant, ClaimState claimState, uint claimAmountDai);
 

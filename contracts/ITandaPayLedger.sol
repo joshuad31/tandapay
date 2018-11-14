@@ -31,7 +31,7 @@ contract ITandaPayLedger {
 	* @param _policyholderSubgroups Array of subgroup indexes for each policyholders from _policyholders array.
 	* @param _monthToRepayTheLoan Max is MONTH_TO_REPAY_LOAN_MAX; Min is MONTH_TO_REPAY_LOAN_MIN.
 	* @param _premiumCostDai Specified in Wei, 1 DAI is 10^18. Example: $20
-	* @param _maxClaimDai Specified in Wei, 1 DAI is 10^18. Example: $500
+	* @param _maxClaimDai Specified in Wei, 1 DAI is 10^18. Example: $500. _maxClaimDai<=(_premiumCostDai * group count) 
 	* @return groupID New group ID.
 	*/
 	function createNewTandaGroup(
