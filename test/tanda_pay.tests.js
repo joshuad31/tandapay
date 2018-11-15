@@ -317,11 +317,14 @@ contract('TandaPayLedger', (accounts) => {
 				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
 				await daiContract.mint(policyholders[0], amountToPay, {from:backend}).should.be.fulfilled;
 				await daiContract.approve(tandaPayLedger.address, amountToPay, {from:outsider}).should.be.fulfilled;
-				await tandaPayLedger.commitPremium(id, amountToPay, {from:outsider}).should.be.fulfilled;	
+				await tandaPayLedger.commitPremium(id, amountToPay, {from:outsider}).should.be.rejectedWith('revert');	
 			});
 
 			it('Should fail if wrong GroupID',async() => {
-				await payPremium(id+1, premiumCostDai);
+				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
+				await daiContract.mint(policyholders[0], amountToPay, {from:backend}).should.be.fulfilled;
+				await daiContract.approve(tandaPayLedger.address, amountToPay, {from:policyholders[0]}).should.be.fulfilled;
+				await tandaPayLedger.commitPremium(id+1, amountToPay, {from:policyholders[0]}).should.be.rejectedWith('revert');	
 			});
 
 
