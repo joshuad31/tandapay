@@ -321,7 +321,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if wrong GroupID',async() => {
-				getPremiumFor(id+1, premiumCostDai);
+				await getPremiumFor(id+1, premiumCostDai);
 			});
 
 
