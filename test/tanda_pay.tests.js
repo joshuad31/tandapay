@@ -46,18 +46,18 @@ contract('TandaPayLedger', (accounts) => {
 		premiumCostDai = 20e18;
 		maxClaimDai = 500e18;
 
-		var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+		var tx = await tandaPayLedger.createNewTandaGroup(
+			secretary,
+			policyholders, 
+			policyholderSubgroups, 
+			monthToRepayTheLoan, 
+			premiumCostDai, 
+			maxClaimDai, 
+			{from:backend}).should.be.fulfilled;
 		var id = await getGroupId(tx);		
 	});
 
 	describe('ITandaPayLedger interface', function(){
-
 		describe('transferBackendAccount()', function () {
 			it('Should not be callable by non backend account',async() => {
 				await tandaPayLedger.transferBackendAccount(outsider, {from:outsider}).should.be.rejectedWith('revert');
@@ -88,106 +88,115 @@ contract('TandaPayLedger', (accounts) => {
 
 		describe('createNewTandaGroup()', function () {
 			it('Should not be callable by non backend account',async() => {
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholders, 
-												 policyholderSubgroups, 
-												 monthToRepayTheLoan, 
-												 premiumCostDai, 
-												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should not be callable with different count of _policyholders and _policyholderSubgroups',async() => {
 				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MAX-1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MAX);
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholdersModified, 
-												 policyholderSubgroupsModified, 
-												 monthToRepayTheLoan, 
-												 premiumCostDai, 
-												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');				
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholdersModified, 
+					policyholderSubgroupsModified, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _policyholders.count less than GROUP_SIZE_AT_CREATION_MIN',async() => {
 				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MIN-1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MIN-1);
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholdersModified, 
-												 policyholderSubgroupsModified, 
-												 monthToRepayTheLoan, 
-												 premiumCostDai, 
-												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');			
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholdersModified, 
+					policyholderSubgroupsModified, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.rejectedWith('revert');			
 
 			});
 
 			it('Should not be callable with _policyholders.count more than GROUP_SIZE_AT_CREATION_MAX',async() => {
 				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MAX+1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MAX+1);
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholdersModified, 
-												 policyholderSubgroupsModified, 
-												 monthToRepayTheLoan, 
-												 premiumCostDai, 
-												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');				
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholdersModified, 
+					policyholderSubgroupsModified, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _monthToRepayTheLoan less than MONTH_TO_REPAY_LOAN_MIN',async() => {
 				var monthToRepayTheLoanModified = MONTH_TO_REPAY_LOAN_MIN - 1;
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholders, 
-												 policyholderSubgroups, 
-												 monthToRepayTheLoanModified, 
-												 premiumCostDai, 
-												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');			
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoanModified, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.rejectedWith('revert');			
 			});
 
 			it('Should not be callable with _monthToRepayTheLoan more than MONTH_TO_REPAY_LOAN_MAX',async() => {
 				var monthToRepayTheLoanModified = MONTH_TO_REPAY_LOAN_MAX + 1;
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholders, 
-												 policyholderSubgroups, 
-												 monthToRepayTheLoanModified, 
-												 premiumCostDai, 
-												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');			
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoanModified, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.rejectedWith('revert');			
 
 			});
 			
 			it('Should not be callable with _premiumCostDai==0',async() => {
 				var premiumCostDaiModified = 0;
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholders, 
-												 policyholderSubgroups, 
-												 monthToRepayTheLoan, 
-												 premiumCostDaiModified, 
-												 maxClaimDai, 
-												 {from:backend}).should.be.rejectedWith('revert');				
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDaiModified, 
+					maxClaimDai, 
+					{from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _maxClaimDai==0',async() => {
 				var maxClaimDaiModified = 0;
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholders, 
-												 policyholderSubgroups, 
-												 monthToRepayTheLoan, 
-												 premiumCostDai, 
-												 maxClaimDaiModified, 
-												 {from:backend}).should.be.rejectedWith('revert');				
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDaiModified, 
+					{from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable with _maxClaimDai>=(_premiumCostDai * group count)',async() => { 
 				var maxClaimDaiModified = premiumCostDai * GROUP_SIZE_AT_CREATION_MIN;
-				await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholders, 
-												 policyholderSubgroups, 
-												 monthToRepayTheLoan, 
-												 premiumCostDai, 
-												 maxClaimDaiModified, 
-												 {from:backend}).should.be.rejectedWith('revert');
+				await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDaiModified, 
+					{from:backend}).should.be.rejectedWith('revert');
 			});
 
 			/*
@@ -201,13 +210,14 @@ contract('TandaPayLedger', (accounts) => {
 			*/
 
 			it('Should create 2 groups with different IDs',async() => {
-				var tx2 = await tandaPayLedger.createNewTandaGroup(secretary,
-												 policyholders, 
-												 policyholderSubgroups, 
-												 monthToRepayTheLoan, 
-												 premiumCostDai, 
-												 maxClaimDai, 
-												 {from:backend}).should.be.fulfilled;
+				var tx2 = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id2 = await getGroupId(tx2);	
 				assert.isTrue(id2!=id);
 			});

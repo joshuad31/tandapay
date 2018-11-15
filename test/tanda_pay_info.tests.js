@@ -14,7 +14,9 @@ require('chai')
 contract('TandaPayLedger', (accounts) => {
 	const backend = accounts[0];
 	const secretary = accounts[1];
+	const secretary2 = accounts[2];
 	const outsider = accounts[9];
+
 	var daiContract;
 	var tandaPayLedger; 
 
@@ -51,7 +53,6 @@ contract('TandaPayLedger', (accounts) => {
 	});
 
 	describe('ITandaPayLedgerInfo interface', function(){
-
 		describe('getTandaGroupCountForSecretary()', function () {
 			it('Should return 0 if no groups',async() => {
 				var count = var await tandaPayLedger.getTandaGroupCountForSecretary(secretary);
@@ -60,13 +61,14 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should return 0 if no groups for current secretary',async() => {
 				var secretary2 = accounts[2];
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);	
 
 				var count = var await tandaPayLedger.getTandaGroupCountForSecretary(secretary);
@@ -74,13 +76,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return 1 if one group',async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);	
 
 				var count = var await tandaPayLedger.getTandaGroupCountForSecretary(secretary);
@@ -90,25 +93,27 @@ contract('TandaPayLedger', (accounts) => {
 
 		describe('getTandaGroupIDForSecretary()', function () {
 			it('Should fail if index is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);	
 				var groupId = var await tandaPayLedger.getTandaGroupIDForSecretary(secretary, 1).should.be.rejectedWith('revert');
 			});
 
 			it('Should return valid group ID if index is OK', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);	
 				var groupId = var await tandaPayLedger.getTandaGroupIDForSecretary(secretary, 0).should.be.fulfilled;
 			});
@@ -121,13 +126,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return 1 if one group',async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);	
 
 				var count = await tandaPayLedger.getTandaGroupCount();
@@ -141,13 +147,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return valid group ID if index is OK', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend});				
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;				
 				var groupId = await tandaPayLedger.getTandaGroupID(0).should.be.fulfilled;
 				// TODO: what is valid? Is _index == groupId?
 			});
@@ -156,25 +163,27 @@ contract('TandaPayLedger', (accounts) => {
 		describe('getGroupInfo()', function () {
 			// returns(address secretary, uint subgroupsTotal, uint monthToRepayTheLoan, uint premiumCostDai, uint maxClaimDai); 
 			it('Should fail if index is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend});
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				await tandaPayLedger.getGroupInfo(id+1).should.be.rejectedWith('revert');
 			});
 
 			it('Should return all data', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend});
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var groupData = await tandaPayLedger.getGroupInfo(id).should.be.fulfilled;
 				assert.equal(groupData[0], secretary);
@@ -187,25 +196,27 @@ contract('TandaPayLedger', (accounts) => {
 
 		describe('getGroupInfo2()', function () {
 			it('Should fail if index is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend});
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var groupData = await tandaPayLedger.getGroupInfo2(id+1).should.be.rejectedWith('revert');
 			});
 
 			it('Should return all data for pre-period', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend});
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var groupData = await tandaPayLedger.getGroupInfo2(id).should.be.fulfilled;
 				
@@ -218,13 +229,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return updated data for active period', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend});
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				await passHours(3*24);
 
@@ -239,13 +251,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return updated data for post-period period', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend});
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				await passHours(30*24);
 				
@@ -260,13 +273,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return all data for next period', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				await passHours(30*24);
 				
@@ -285,39 +299,42 @@ contract('TandaPayLedger', (accounts) => {
 			// function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view 
 			// 	returns(uint policyholdersCount, address[] policyholders);			
 			it('Should fail if index is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var subgroupIndex = 0;
 				var info = await tandaPayLedger.getSubgroupInfo(id+1, subgroupIndex).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if subgroup index is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var subgroupIndex = 10;
 				var info = await tandaPayLedger.getSubgroupInfo(id, subgroupIndex).should.be.rejectedWith('revert');				
 			});
 
 			it('Should return valid data', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var subgroupIndex = 0;
 				var info = await tandaPayLedger.getSubgroupInfo(id, subgroupIndex).should.be.fulfilled;
@@ -328,13 +345,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return valid data when policyholder requested to change the subgroup', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 
 				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
@@ -356,13 +374,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return valid data after subgroup was auto changed for policyholder', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 
 				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
@@ -391,39 +410,41 @@ contract('TandaPayLedger', (accounts) => {
 		describe('getPolicyholderInfo()', function () {
 		// function getPolicyholderInfo(uint _groupID, address _policyholder) public view 
 			// returns(uint8 currentSubgroupIndex, uint8 nextSubgroupIndex, PolicyholderStatus status);
-
 			it('Should fail if index is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				await tandaPayLedger.getPolicyholderInfo(id+1, policyholders[0]).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if address is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				await tandaPayLedger.getPolicyholderInfo(id, accounts[99]).should.be.rejectedWith('revert');
 			});
 
 			it('Should return valid data', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var data = await tandaPayLedger.getPolicyholderInfo(id, policyholders[0]).should.be.fulfilled;
 				assert.equal(data[0], 0);
@@ -431,13 +452,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return valid data when policyholder requested to change the subgroup', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 
 				var newSubgroup = 1;
@@ -449,13 +471,14 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return valid data after subgroup was auto changed for policyholder', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 
 				var newSubgroup = 1;
@@ -471,50 +494,54 @@ contract('TandaPayLedger', (accounts) => {
 		// function getAmountToPay(uint _groupID, address _policyholder) public view 
 			// returns(uint premiumDai, uint overpaymentDai, uint loanRepaymentDai);			
 			it('Should fail if index is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var amountData = await tandaPayLedger.getAmountToPay(id+1, policyholders[0]).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if address is wrong', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var amountData = await tandaPayLedger.getAmountToPay(id, outsider).should.be.rejectedWith('revert');			
 			});
 
 			it('Should fail if not a pre-period', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				await passHours(3*24);
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]).should.be.rejectedWith('revert');§
 			});
 
 			it('Should return 0 if already paid', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 
@@ -528,13 +555,14 @@ contract('TandaPayLedger', (accounts) => {
 			// current period (#2)- first 3 days (pre-period)
 			// previous period (#1) - last 3 days of active period
 			it('Should return correct if pre-period of a new period, but old one is still running', async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				await passHours(30*24);
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
@@ -547,13 +575,14 @@ contract('TandaPayLedger', (accounts) => {
 				// premium should be $20 
 				// overpayment should be $5 
 				// loan repayment should be $12.5
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					policyholders, 
+					policyholderSubgroups, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);				
 				assert.equal(amountData[0].toNumber(), 20e18);
@@ -576,13 +605,15 @@ contract('TandaPayLedger', (accounts) => {
 					6, 6, 6, 6, 6, 6, 6,
 					7, 7, 7, 7, 7, 7, 7
 				]				
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroupsModified,
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.
+					createNewTandaGroup(
+						secretary,
+						poliyholders, 
+						policyholderSubgroupsModified,
+						monthToRepayTheLoan, 
+						premiumCostDai, 
+						maxClaimDai, 
+						{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);				
 				assert.equal(amountData[0].toNumber(), 20e18);
@@ -604,13 +635,15 @@ contract('TandaPayLedger', (accounts) => {
 					6, 6, 6, 6, 6, 6,
 					7, 7, 7, 7, 7, 7, 7
 				]				
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroupsModified,
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.
+					createNewTandaGroup(
+						secretary,
+						poliyholders, 
+						policyholderSubgroupsModified,
+						monthToRepayTheLoan, 
+						premiumCostDai, 
+						maxClaimDai, 
+						{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);				
 				assert.equal(amountData[0].toNumber(), 20e18);
@@ -623,13 +656,15 @@ contract('TandaPayLedger', (accounts) => {
 		// function getCurrentPeriodInfo(uint _groupID) public view 
 			// returns(uint8 periodIndex, SubperiodType subperiodType);	
 			beforeEach(async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.
+					createNewTandaGroup(
+						secretary,
+						poliyholders, 
+						policyholderSubgroups, 
+						monthToRepayTheLoan, 
+						premiumCostDai, 
+						maxClaimDai, 
+						{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 			});
 
@@ -673,13 +708,15 @@ contract('TandaPayLedger', (accounts) => {
 		// function getClaimCount(uint _groupID, uint _periodIndex) public view 
 			// returns(uint countOut);		
 			beforeEach(async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.
+					createNewTandaGroup(
+						secretary,
+						poliyholders, 
+						policyholderSubgroups, 
+						monthToRepayTheLoan, 
+						premiumCostDai, 
+						maxClaimDai, 
+						{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 			});
 
@@ -722,13 +759,15 @@ contract('TandaPayLedger', (accounts) => {
 		// function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
 			// returns(address claimant, ClaimState claimState, uint claimAmountDai);
 			beforeEach(async() => {
-				var tx = await tandaPayLedger.createNewTandaGroup(secretary,
-										 policyholders, 
-										 policyholderSubgroups, 
-										 monthToRepayTheLoan, 
-										 premiumCostDai, 
-										 maxClaimDai, 
-										 {from:backend}).should.be.fulfilled;
+				var tx = await tandaPayLedger.
+					createNewTandaGroup(
+						secretary,
+						poliyholders, 
+						policyholderSubgroups, 
+						monthToRepayTheLoan, 
+						premiumCostDai, 
+						maxClaimDai, 
+						{from:backend}).should.be.fulfilled;
 				var id = await getGroudId(tx);
 			});
 
@@ -793,7 +832,6 @@ contract('TandaPayLedger', (accounts) => {
 				
 				// 1 - create 3 claims 
 				// 2 - check the claimAmountDai value
-
 				await payPremium(id, policyholders[0]);
 				await payPremium(id, policyholders[1]);
 				await payPremium(id, policyholders[2]);
@@ -829,7 +867,6 @@ contract('TandaPayLedger', (accounts) => {
 				// 1 - create 3 claims 
 				// 2 - approve 2 of them
 				// 3 - check the claimAmountDai value for approved claims
-
 				await payPremium(id, policyholders[0]);
 				await payPremium(id, policyholders[1]);
 				await payPremium(id, policyholders[2]);
@@ -862,7 +899,6 @@ contract('TandaPayLedger', (accounts) => {
 				// 1 - create 3 claims 
 				// 2 - approve 2 of them
 				// 3 - check the claimAmountDai value for rejected claims
-
 				await payPremium(id, policyholders[0]);
 				await payPremium(id, policyholders[1]);
 				await payPremium(id, policyholders[2]);
@@ -877,7 +913,6 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[2]}).should.be.fulfilled;
 				var data = await tandaPayLedger.getAmountToPay();
 				var premium = data[0].toNumber();
-
 
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, 2);
 				assert.equal(data[0], policyholders[2]);
