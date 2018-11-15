@@ -335,7 +335,7 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should fail if period!=pre-period',async() => {
 				await passHours(3*24);
-				await payPremium(id, policyholders[0]);
+				await payPremium(id, policyholders[0]).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if user paid before',async() => {
@@ -386,15 +386,15 @@ contract('TandaPayLedger', (accounts) => {
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				var newSubgroup = 1;
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.rejectedWith('revert');
+				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if user already requested subgroup switch',async() => {
 				await passHours(3*24);
 				var newSubgroup = 1;
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.rejectedWith('revert');
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup+1, {from:policyholders[0]}).should.be.rejectedWith('revert');
+				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
+				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.rejectedWith('revert');
+				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup+1, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
 			it('Should add request to change the subgroup',async() => {
@@ -411,7 +411,7 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should switch group automatically if active period ended',async() => {
 				await passHours(3*24);
 				var newSubgroup = 1;
-				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;				
+				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;				
 				await passHours(30*24);
 				var info = await tandaPayLedger.getSubgroupInfo(id, 0);
 				assert.equal(false, isInPolicyholderArray(info, policyholders[0]));
