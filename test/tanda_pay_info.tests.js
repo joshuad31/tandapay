@@ -369,8 +369,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(info[0], 5);
 				for(var i=0; i<5; i++) {
 					assert.equal(info[1][i], policyholders[i+5]);	
-				}				
-
+				}
 			});
 
 			it('Should return valid data after subgroup was auto changed for policyholder', async() => {
@@ -822,7 +821,7 @@ contract('TandaPayLedger', (accounts) => {
 
 				assert.equal(data[0], policyholders[0]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[1].toNumber(), 0); // coz no finalizeClaims
+				assert.equal(data[2].toNumber(), 0); // coz no finalizeClaims
 			});
 
 			// New tests:
@@ -841,23 +840,27 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
 
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[0]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[1]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[2]}).should.be.fulfilled;
+
 				var data = await tandaPayLedger.getAmountToPay();
 				var premium = data[0].toNumber();
 
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, 0);
 				assert.equal(data[0], policyholders[0]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[2].toNumber(), 0);
+				assert.equal(data[2].toNumber(), premium*3/3);
 
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, 1);
 				assert.equal(data[0], policyholders[1]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[2].toNumber(), 0);
+				assert.equal(data[2].toNumber(), premium*3/3);
 
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, 2);
 				assert.equal(data[0], policyholders[2]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[2].toNumber(), 0);											
+				assert.equal(data[2].toNumber(), premium*3/3);											
 			});
 
 			it('Should return valid claimAmountDai if claim is finalized and APPROVED', async() => {
@@ -885,12 +888,12 @@ contract('TandaPayLedger', (accounts) => {
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, 0);
 				assert.equal(data[0], policyholders[0]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[1].toNumber(), (2*premium)/3);
+				assert.equal(data[2].toNumber(), (2*premium)/3);
 
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, 1);
 				assert.equal(data[0], policyholders[1]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[1].toNumber(), (2*premium)/3);
+				assert.equal(data[2].toNumber(), (2*premium)/3);
 			});
 
 			it('Should return claimAmountDai==ZERO if claim is finalized but REJECTED', async() => {
@@ -917,7 +920,7 @@ contract('TandaPayLedger', (accounts) => {
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, 2);
 				assert.equal(data[0], policyholders[2]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[1].toNumber(), 0);				
+				assert.equal(data[2].toNumber(), 0);				
 			});
 		});
 
