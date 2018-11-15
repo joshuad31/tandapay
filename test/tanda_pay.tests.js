@@ -224,8 +224,8 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('addClaim()', function () {
-				// var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
-				// var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();			
+			// var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+			// var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();			
 			it('Should not be callable by non backend account',async() => {
 				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
@@ -285,6 +285,8 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should fail if wrong GroupID',async() => {
 				await tandaPayLedger.removePolicyholderFromGroup(id+1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');				
+			});
+
 			it('Should not be callable by non backend account',async() => {
 				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:outsider}).should.be.rejectedWith('revert');				
 			});
@@ -428,9 +430,6 @@ contract('TandaPayLedger', (accounts) => {
 
 				var info = await tandaPayLedger.getSubgroupInfo(id, 1);
 				assert.equal(true, isInPolicyholderArray(info, policyholders[0]));				
-
-				// function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view 
-					// returns(uint policyholdersCount, address[] policyholders);
 			});
 		});
 
