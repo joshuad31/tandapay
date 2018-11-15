@@ -827,7 +827,7 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
-
+				await passHours(24*24);
 				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[1]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[2]}).should.be.fulfilled;
@@ -866,7 +866,7 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
-
+				await passHours(24*24);
 				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[1]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[2]}).should.be.fulfilled;
@@ -898,7 +898,7 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
-
+				await passHours(24*24);
 				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[1]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[2]}).should.be.fulfilled;
