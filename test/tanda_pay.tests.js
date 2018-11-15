@@ -327,13 +327,11 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.commitPremium(id+1, amountToPay, {from:policyholders[0]}).should.be.rejectedWith('revert');	
 			});
 
-
 			it('Should fail if user did not approved DAIs',async() => {
 				var data = await tandaPayLedger.getAmountToPay();
 				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
 				await tandaPayLedger.commitPremium(id, amountToPay, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
-
 
 			it('Should fail if period!=pre-period',async() => {
 				await passHours(3*24);
