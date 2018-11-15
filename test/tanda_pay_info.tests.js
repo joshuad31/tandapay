@@ -31,6 +31,7 @@ contract('TandaPayLedger', (accounts) => {
 	var GROUP_SIZE_AT_CREATION_MAX;
 	var MONTH_TO_REPAY_LOAN_MIN;
 	var MONTH_TO_REPAY_LOAN_MAX;
+	
 	beforeEach(async() => {
 		daiContract = await DaiContract.new();
 		tandaPayLedger = await TandaPayLedger.new(daiContract.address);
@@ -48,7 +49,6 @@ contract('TandaPayLedger', (accounts) => {
 	});
 
 	before(async() => {
-
 	});
 
 	describe('ITandaPayLedgerInfo interface', function(){
@@ -142,7 +142,7 @@ contract('TandaPayLedger', (accounts) => {
 
 		describe('getTandaGroupID()', function () {
 			it('Should fail if index is wrong', async() => {
-				await tandaPayLedger.getTandaGroupID().should.be.rejectedWith('revert');
+				await tandaPayLedger.getTandaGroupID(1).should.be.rejectedWith('revert');
 			});
 
 			it('Should return valid group ID if index is OK', async() => {
@@ -155,7 +155,7 @@ contract('TandaPayLedger', (accounts) => {
 					maxClaimDai, 
 					{from:backend}).should.be.fulfilled;				
 				var groupId = await tandaPayLedger.getTandaGroupID(0).should.be.fulfilled;
-				
+				assert.eq(groupId, 0);
 			});
 		});
 
