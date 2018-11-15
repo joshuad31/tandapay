@@ -107,7 +107,7 @@ contract ITandaPayLedgerInfo {
 	* If claim is finalized and approved -> claimAmountDai (_premiumCostDai * group count) / numberOfAprovedClaims
 	* (but never more than _maxClaimDai)
 	*	
-	* If claim is finalized and rejected -> claimAmountDai i
+	* If claim is finalized and rejected -> claimAmountDai is ZERO
 	*/
 	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view 
 		returns(address claimant, ClaimState claimState, uint claimAmountDai);
