@@ -17,7 +17,7 @@ function getPolicyholders(count) {
 	return accounts.slice(10, count+10);
 }
 
-function getPremiumFor(id, pc) {
+function payPremium(id, pc) {
 	var data = await tandaPayLedger.getAmountToPay();
 	var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
 	await daiContract.mint(pc, amountToPay, {from:backend}).should.be.fulfilled;
@@ -31,5 +31,5 @@ function getGroupId(tx) {
 
 module.exports.getSubgroups = getSubgroups;
 module.exports.getPolicyholders = getPolicyholders;
-module.exports.getPremiumFor = getPremiumFor;
+module.exports.payPremium = payPremium;
 module.exports.getGroupId = getGroupId;

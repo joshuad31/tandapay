@@ -3,7 +3,7 @@ var DaiContract = artifacts.require("./DaiContract");
 
 import { getSubgroups, 
 	    getPolicyholders, 
-	    getPremiumFor, 
+	    payPremium, 
 	    getGroupId } from "./helpers/helpers.js";
 
 require('chai')
@@ -217,19 +217,19 @@ contract('TandaPayLedger', (accounts) => {
 				// var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 				// var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();			
 			it('Should not be callable by non backend account',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:outsider}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if wrong GroupID',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				await tandaPayLedger.addClaim(id+1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if period!=active',async() => { 
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
@@ -243,7 +243,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if policyholder has already opened claim',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
@@ -251,15 +251,15 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should open claim and return valid claim index',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				assert.equal(claimId, 0);
 			});
 
 			it('Should open 2 claims and return valid claim indexes',async() => {
-				await getPremiumFor(id, policyholders[0]);
-				await getPremiumFor(id, policyholders[1]);
+				await payPremium(id, policyholders[0]);
+				await payPremium(id, policyholders[1]);
 				await passHours(3*24);
 				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				var claimId2 = await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
@@ -289,7 +289,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if premium is paid by policyholder',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
@@ -321,7 +321,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if wrong GroupID',async() => {
-				await getPremiumFor(id+1, premiumCostDai);
+				await payPremium(id+1, premiumCostDai);
 			});
 
 
@@ -334,11 +334,11 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should fail if period!=pre-period',async() => {
 				await passHours(3*24);
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 			});
 
 			it('Should fail if user paid before',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				var data = await tandaPayLedger.getAmountToPay();
 				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
 				await daiContract.mint(policyholders[0], amountToPay, {from:backend}).should.be.fulfilled;
@@ -381,7 +381,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if user has open claims',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				var newSubgroup = 1;
@@ -435,7 +435,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if user has opened claim',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await passHours(30*24);
@@ -448,16 +448,16 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if user already finalized (selected loyalist/defector option before)',async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(30*24);
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
 			it('Should auto choose <loyalist> if no answer in 3 days (when post period ended)',async() => {
-				await getPremiumFor(id, policyholders[0]);
-				await getPremiumFor(id, policyholders[1]);
-				await getPremiumFor(id, policyholders[2]);
+				await payPremium(id, policyholders[0]);
+				await payPremium(id, policyholders[1]);
+				await payPremium(id, policyholders[2]);
 				await passHours(3*24);
 
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;

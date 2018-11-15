@@ -3,7 +3,7 @@ var DaiContract = artifacts.require("./DaiContract");
 
 import { getSubgroups, 
 	    getPolicyholders, 
-	    getPremiumFor, 
+	    payPremium, 
 	    getGroupId } from "./helpers/helpers.js";
 
 require('chai')
@@ -519,7 +519,7 @@ contract('TandaPayLedger', (accounts) => {
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 
 				var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 				var shouldPayTotal = amountData[0].toNumber() + amountData[1].toNumber() + amountData[2].toNumber();
 				assert.equal(shouldPayTotal, 0);
@@ -709,7 +709,7 @@ contract('TandaPayLedger', (accounts) => {
 
 			it('Should return valid count', async() => {
 				var period = 0;
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -733,7 +733,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if groupID is wrong', async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -743,7 +743,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if wrong period', async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -759,7 +759,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if claimIndex is wrong', async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 				var claimId = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
@@ -769,7 +769,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should return valid data', async() => {
-				await getPremiumFor(id, policyholders[0]);
+				await payPremium(id, policyholders[0]);
 				await passHours(3*24);
 
 				var data = await tandaPayLedger.getAmountToPay();
@@ -794,9 +794,9 @@ contract('TandaPayLedger', (accounts) => {
 				// 1 - create 3 claims 
 				// 2 - check the claimAmountDai value
 
-				await getPremiumFor(id, policyholders[0]);
-				await getPremiumFor(id, policyholders[1]);
-				await getPremiumFor(id, policyholders[2]);
+				await payPremium(id, policyholders[0]);
+				await payPremium(id, policyholders[1]);
+				await payPremium(id, policyholders[2]);
 				await passHours(3*24);
 
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -830,9 +830,9 @@ contract('TandaPayLedger', (accounts) => {
 				// 2 - approve 2 of them
 				// 3 - check the claimAmountDai value for approved claims
 
-				await getPremiumFor(id, policyholders[0]);
-				await getPremiumFor(id, policyholders[1]);
-				await getPremiumFor(id, policyholders[2]);
+				await payPremium(id, policyholders[0]);
+				await payPremium(id, policyholders[1]);
+				await payPremium(id, policyholders[2]);
 				await passHours(3*24);
 
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -863,9 +863,9 @@ contract('TandaPayLedger', (accounts) => {
 				// 2 - approve 2 of them
 				// 3 - check the claimAmountDai value for rejected claims
 
-				await getPremiumFor(id, policyholders[0]);
-				await getPremiumFor(id, policyholders[1]);
-				await getPremiumFor(id, policyholders[2]);
+				await payPremium(id, policyholders[0]);
+				await payPremium(id, policyholders[1]);
+				await payPremium(id, policyholders[2]);
 				await passHours(3*24);
 
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
