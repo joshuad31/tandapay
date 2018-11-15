@@ -324,6 +324,14 @@ contract('TandaPayLedger', (accounts) => {
 				getPremiumFor(id+1, premiumCostDai);
 			});
 
+
+			it('Should fail if user did not approved DAIs',async() => {
+				var data = await tandaPayLedger.getAmountToPay();
+				var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
+				await tandaPayLedger.commitPremium(id, amountToPay, {from:policyholders[0]}).should.be.rejectedWith('revert');
+			});
+
+
 			it('Should fail if period!=pre-period',async() => {
 				await passHours(3*24);
 				await getPremiumFor(id, policyholders[0]);
@@ -431,7 +439,7 @@ contract('TandaPayLedger', (accounts) => {
 				await passHours(3*24);
 				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await passHours(30*24);
-				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');					
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if period!=post-period',async() => {
@@ -447,7 +455,22 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should auto choose <loyalist> if no answer in 3 days (when post period ended)',async() => {
-				// TODO: WAT
+				await getPremiumFor(id, policyholders[0]);
+				await getPremiumFor(id, policyholders[1]);
+				await getPremiumFor(id, policyholders[2]);
+				await passHours(3*24);
+
+				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
+
+				var data = await tandaPayLedger.getAmountToPay();
+				var premium = data[0].toNumber();
+
+				await passHours(30*24);
+
+				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, 0);
+				assert.equal(data[0], policyholders[0]);
+				assert.equal(data[1].toNumber(), 0);
+				assert.equal(data[1].toNumber(), (3*premium));
 			});
 		});
 
