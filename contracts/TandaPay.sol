@@ -31,7 +31,8 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		address secretary;
 		uint monthToRepayTheLoan;
 		uint premiumCostDai;
-		uint maxClaimDai;	
+		uint maxClaimDai;
+		uint createdAt;
 	}
 
 	struct Policyholder {
@@ -107,20 +108,72 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 			_monthToRepayTheLoan,	// monthToRepayTheLoan
 			_premiumCostDai,		// premiumCostDai
 			_maxClaimDai,			// maxClaimDai
-			0					// claimCount
+			now					// createdAt
 		); 
 		groupCount += 1;
 	}
 
-	function _getPeriodNumber(uint _groupID); // TODO
-	function _getPolicyHolderNumber(uint _groupID, address _addr); // TODO
-	function _getPolicyHolder(uint _groupID, address _addr); // TODO
-	function _getNeededAmount(uint _groupID); // TODO
-	function _getSubgroupCount(uint _groupID); // TODO
+	function _getPeriodNumber(uint _groupID) internal view returns(uint number) {
+		uint timePassed = (now - groups[_groupID].createdAt);
+		uint periodLength = 30 * 24 * 3600 * 1000;
+		number = timePassed / periodLength; // TODO: check it
+	}
+
+	function _getPolicyHolderNumber(uint _groupID, address _addr) internal view returns(uint) {
+		Policyholder[] phArr = groups[_groupID].policyHolders;
+		for(uint i=0; i<phArr.length; i++) {
+			if(phArr[i].phAddress==_addr) {
+				return i;
+			}
+		}
+		revert(); // no element
+	}
+
+	function _getPolicyHolder(uint _groupID, address _addr) internal view returns(Policyholder) {
+		Policyholder[] phArr = groups[_groupID].policyHolders;
+		for(uint i=0; i<phArr.length; i++) {
+			if(phArr[i].phAddress==_addr) {
+				return phArr[i];
+			}
+		}
+		revert(); // no element
+	}
+
+	function _getNeededAmount(uint _groupID) returns(uint out) {
+		uint out = 
+			_getPremiumToPay(_groupID, _phAddress) +
+			_getOverpaymentToPay(_groupID, _phAddress) + 
+			_getLoanRepaymentToPay(_groupID, _phAddress);
+	}
+
+	function _getSubgroupCount(uint _groupID) returns(uint maximum){
+		Policyholder[] phArr = groups[_groupID].policyHolders;
+		maximum = 0;
+		for(uint i=0; i<ph.length; i++) {
+			if(phArr[i].subgroup<maximum){
+				maximum = phArr[i].subgroup;
+			}
+		}
+	}
+
+	function _getCurrentSubperiodType(uint _groupID) {
+		uint timePassed = (now - groups[_groupID].createdAt);
+		uint day = 24 * 3600 * 1000;
+		uint dayNum = timePassed/day;
+
+		dayNum = dayNum - 30*(_getPeriodNumber(_groupID) - 1);
+		if(dayNum<=3) {
+			return SubperiodType.PrePeriod;
+		} else if((dayNum>3)&&(dayNum<30)) {
+			return SubperiodType.ActivePeriod;
+		} else {
+		 	revert(); // ???
+		}
+	}
+
 	function _getPremiumsTotalDai(uint _groupID); // TODO
 	function _getOverpaymentTotalDai(uint _groupID); // TODO
-	function _getLoanRepaymentTotalDai(uint _groupID); // TODO
-	function _getCurrentSubperiodType(uint _groupID); // TODO
+	function _getLoanRepaymentTotalDai(uint _groupID); // TODO	
 	function _getPremiumToPay(uint _groupID, address _phAddress); // TODO
 	function _getOverpaymentToPay(uint _groupID, address _phAddress); // TODO
 	function _getLoanRepaymentToPay(uint _groupID, address _phAddress); // TODO
@@ -272,4 +325,3 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		defectors = groupPeriods[_groupID][_periodIndex].defectors;
 	}	
 }
-
