@@ -38,6 +38,7 @@ contract ITandaPayLedger {
 	* @return groupID New group ID.
 	*/
 	function createNewTandaGroup(
+		address _secretary,
 		address[] _policyholders,
 		uint8[] _policyholderSubgroups,
 		uint _monthToRepayTheLoan, 
