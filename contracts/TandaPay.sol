@@ -3,6 +3,8 @@ pragma solidity ^0.4.23;
 import "./ITandaPayLedger.sol";
 import "./ITandaPayLedgerInfo.sol";
 
+import "./DaiContract.sol";
+
 import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 
@@ -61,7 +63,7 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 	}
 
 	uint groupCount;
-	mapping(uint=>GroupParams) groups; // groupNumber => GroupParams
+	mapping(uint=>Group) groups; // groupNumber => Group
 
 	uint public GROUP_SIZE_AT_CREATION_MIN = 50;
 	uint public GROUP_SIZE_AT_CREATION_MAX = 55;
@@ -228,6 +230,35 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		}
 	}
 
+
+	function	_isHavePremium(uint _groupID, address _phAddress) returns(bool) {
+		uint timeDelta = groups[_groupID].policyholders[i].premiumBoughtAt - now;
+
+		if(timeDelta < 30*24*3600*1000) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	function _getPolicyHolderStatus(uint _groupID, address _phAddress) internal returns(PolicyholderStatus) {
+		uint period = _getPeriodNumber(_groupID);
+
+		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
+			if(groups[_groupID].policyholders[i].phAddress==_phAddress) {
+				if(_isHavePremium(_groupID, _phAddress)) {
+					for(uint j=0; j<groups[_groupID].periods[p].claimsCount; j++) {
+						if(groups[_groupID].periods[p].claims[j].claimantAddress==_phAddress) {
+							return PolicyholderStatus.OpenedClaim;
+						}					
+					}
+					return PolicyholderStatus.PremiumPaid;
+				}
+			}
+		}
+		return PolicyholderStatus.PremiumUnpaid;
+	}	
+
 	function addClaim(uint _groupID, address _claimantAddress) public onlyByBackend returns(uint claimIndex) {
 		// TODO: check no claims for that _claimantAddress
 		uint period = _getPeriodNumber(_groupID);
@@ -349,7 +380,7 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 	}
 
 	function getClaimCount(uint _groupID, uint _periodIndex) public view returns(uint countOut) {
-		countOut = groupPeriods[_groupID].periods[_periodIndex].claimsCount;
+		countOut = groups[_groupID].periods[_periodIndex].claimsCount;
 	}
 
 	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view returns(address claimant, ClaimState claimState, uint claimAmountDai) {
