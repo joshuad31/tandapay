@@ -154,6 +154,14 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		}
 	}
 
+	function _getSubgroupMembersCount(uint _groupID) internal view returns(uint count){
+		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
+			if(groups[_groupID].policyHolders[i].subgroup<maximum){
+				maximum = groups[_groupID].policyHolders[i].subgroup;
+			}
+		}
+	}	
+
 	function _getCurrentSubperiodType(uint _groupID) internal view returns(SubperiodType) {
 		uint timePassed = (now - groups[_groupID].createdAt);
 		uint day = 24 * 3600 * 1000;
@@ -169,12 +177,56 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		}
 	}
 
-	function _getPremiumsTotalDai(uint _groupID) internal view returns(uint); // TODO
-	function _getOverpaymentTotalDai(uint _groupID) internal view returns(uint); // TODO
-	function _getLoanRepaymentTotalDai(uint _groupID) internal view returns(uint); // TODO	
-	function _getPremiumToPay(uint _groupID, address _phAddress) internal view returns(uint); // TODO
-	function _getOverpaymentToPay(uint _groupID, address _phAddress) internal view returns(uint); // TODO
-	function _getLoanRepaymentToPay(uint _groupID, address _phAddress) internal view returns(uint); // TODO
+	function _getPremiumTotalDai(uint _groupID) internal view returns(uint) {
+		uint out = 0;
+		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
+			out += _getPremiumToPay(_groupID, groups[_groupID].policyholders[i].phAddress);
+		}
+	}
+
+	function _getOverpaymentTotalDai(uint _groupID) internal view returns(uint) {
+		uint out = 0;
+		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
+			out += _getOverpaymentToPay(_groupID, groups[_groupID].policyholders[i].phAddress);
+		}
+	}
+
+	function _getLoanRepaymentTotalDai(uint _groupID) internal view returns(uint) {
+		uint out = 0;
+		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
+			out += _getLoanRepaymentToPay(_groupID, groups[_groupID].policyholders[i].phAddress);
+		}		
+	}
+	
+	function _getPremiumToPay(uint _groupID, address _phAddress) internal view returns(uint) {
+		return premiumsTotalDai;
+	}
+
+	function _getOverpaymentToPay(uint _groupID, address _phAddress) internal view returns(uint) {
+		uint subgroupMembersCount = _getSubgroupMembersCount(_groupID);
+		_getCurrentSubgroupOverpayment(subgroupMembersCount)* premiumCostDai;
+	}
+
+	function _getLoanRepaymentToPay(uint _groupID, address _phAddress) internal view returns(uint) {
+		uint subgroupMembersCount = _getSubgroupMembersCount(_groupID);
+		uint overpayment = _getCurrentSubgroupOverpayment(subgroupMembersCount)* premiumCostDai;
+		uint MTR = 3; // TODO: ???
+		return (premiumCostDai + overpayment) / (MTR - 1);
+	}
+
+	function _getCurrentSubgroupOverpayment(uint _subgroupMembersCount) internal view returns(uint) {
+		if(4==_subgroupMembersCount) {
+			return 333;
+		} else if(5==_subgroupMembersCount) {
+			return 250;
+		} else if(6==_subgroupMembersCount) {
+			return 200;
+		} else if(7==_subgroupMembersCount) {
+			return 167;
+		} else {
+			revert();
+		}
+	}
 
 	function addClaim(uint _groupID, address _claimantAddress) public onlyByBackend returns(uint claimIndex) {
 		// TODO: check no claims for that _claimantAddress
@@ -264,7 +316,7 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 	}
 
 	function getGroupInfo2(uint _groupID) public view returns(uint premiumsTotalDai, uint overpaymentTotalDai, uint loanRepaymentTotalDai) {
-		premiumsTotalDai = _getPremiumsTotalDai(_groupID);
+		premiumsTotalDai = _getPremiumTotalDai(_groupID);
 		overpaymentTotalDai = _getOverpaymentTotalDai(_groupID);
 		premiumsTotalDai = _getLoanRepaymentTotalDai(_groupID);
 	}
