@@ -66,7 +66,7 @@ contract ITandaPayLedgerInfo {
 	* @param _policyholder Selected policyholder address
 	*/
 	function getPolicyholderInfo(uint _groupID, address _policyholder) public view 
-		returns(uint8 currentSubgroupIndex, uint8 nextSubgroupIndex, PolicyholderStatus status);
+		returns(uint currentSubgroupIndex, uint nextSubgroupIndex, PolicyholderStatus status);
 
 	/**
 	* @dev Get the amount that should be paid by a policyholder for the current period 
@@ -83,7 +83,7 @@ contract ITandaPayLedgerInfo {
 	* @param _groupID Selected group ID
 	*/
 	function getCurrentPeriodInfo(uint _groupID) public view 
-		returns(uint8 periodIndex, SubperiodType subperiodType);
+		returns(uint periodIndex, SubperiodType subperiodType);
 
 	/**
 	* @dev Get the current claim count 

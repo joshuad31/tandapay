@@ -17,8 +17,8 @@ contract ITandaPayLedger {
 
 	uint public GROUP_SIZE_AT_CREATION_MIN = 50;
 	uint public GROUP_SIZE_AT_CREATION_MAX = 55;
-	uint8 public MONTH_TO_REPAY_LOAN_MIN = 3;
-	uint8 public MONTH_TO_REPAY_LOAN_MAX = 255;
+	uint public MONTH_TO_REPAY_LOAN_MIN = 3;
+	uint public MONTH_TO_REPAY_LOAN_MAX = 255;
 
 // Backend:
 	function transferBackendAccount(address _newAccount) public onlyByBackend;
@@ -40,7 +40,7 @@ contract ITandaPayLedger {
 	function createNewTandaGroup(
 		address _secretary,
 		address[] _policyholders,
-		uint8[] _policyholderSubgroups,
+		uint[] _policyholderSubgroups,
 		uint _monthToRepayTheLoan, 
 		uint _premiumCostDai,
 		uint _maxClaimDai) public onlyByBackend returns(uint groupID);

@@ -1,10 +1,10 @@
 var TandaPayLedger = artifacts.require("./TandaPayLedger");
 var DaiContract = artifacts.require("./DaiContract");
 
-import { getSubgroups, 
+const { getSubgroups, 
 	    getPolicyholders, 
 	    payPremium, 
-	    getGroupId } from "./helpers/helpers.js";
+	    getGroupId } = require("./helpers/helpers.js");
 
 require('chai')
 	.use(require('chai-as-promised'))
@@ -40,7 +40,7 @@ contract('TandaPayLedger', (accounts) => {
 		MONTH_TO_REPAY_LOAN_MIN = (await tandaPayLedger.MONTH_TO_REPAY_LOAN_MIN()).toNumber();
 		MONTH_TO_REPAY_LOAN_MAX = (await tandaPayLedger.MONTH_TO_REPAY_LOAN_MAX()).toNumber();
 
-		policyholders = getPolicyholders(GROUP_SIZE_AT_CREATION_MIN);
+		policyholders = getPolicyholders(accounts, GROUP_SIZE_AT_CREATION_MIN);
 		policyholderSubgroups = getSubgroups(GROUP_SIZE_AT_CREATION_MIN);
 		monthToRepayTheLoan = MONTH_TO_REPAY_LOAN_MIN;
 		premiumCostDai = 20e18;
@@ -99,7 +99,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should not be callable with different count of _policyholders and _policyholderSubgroups',async() => {
-				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MAX-1);
+				var policyholdersModified = getPolicyholders(accounts, GROUP_SIZE_AT_CREATION_MAX-1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MAX);
 				await tandaPayLedger.createNewTandaGroup(
 					secretary,
@@ -112,7 +112,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should not be callable with _policyholders.count less than GROUP_SIZE_AT_CREATION_MIN',async() => {
-				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MIN-1);
+				var policyholdersModified = getPolicyholders(accounts, GROUP_SIZE_AT_CREATION_MIN-1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MIN-1);
 				await tandaPayLedger.createNewTandaGroup(
 					secretary,
@@ -126,7 +126,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should not be callable with _policyholders.count more than GROUP_SIZE_AT_CREATION_MAX',async() => {
-				var policyholdersModified = getPolicyholders(GROUP_SIZE_AT_CREATION_MAX+1);
+				var policyholdersModified = getPolicyholders(accounts, GROUP_SIZE_AT_CREATION_MAX+1);
 				var policyholderSubgroupsModified = getSubgroups(GROUP_SIZE_AT_CREATION_MAX+1);
 				await tandaPayLedger.createNewTandaGroup(
 					secretary,
