@@ -19,8 +19,14 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		_; 
 	}
 
-	modifier onlyByPolicyholder(uint groupID){
-		// require(groups[_groupID].[msg.sender]==groupID);
+	modifier onlyByPolicyholder(uint _groupID){
+		bool isPH = false;
+		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
+			if(groups[_groupID].policyholders[i]==msg.sender) {
+				isPH = true;
+			}
+		}
+		require(isPH);
 		_;
 	}
 
@@ -44,7 +50,7 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		uint subgroup;
 		uint nextSubgroup;
 		address phAddress;
-		uint premiumBoughtAt;
+		uint lastPeriodPremium;
 	}
 
 	struct Claim {
@@ -109,7 +115,7 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 				_phAddressSubgroups[i], 	// subgroup;
 				_phAddressSubgroups[i], 	// nextSubgroup;
 				_phAddresss[i], 		// phAddress;
-				0 					// premiumBoughtAt;
+				0 					// lastPeriodPremium;
 			);
 			groups[groupCount].policyholdersCount++;
 		}	
@@ -178,27 +184,6 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		 	revert(); // Is it OK?
 		}
 	}
-
-	function _getPremiumTotalDai(uint _groupID) internal view returns(uint) {
-		uint out = 0;
-		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
-			out += _getPremiumToPay(_groupID, groups[_groupID].policyholders[i].phAddress);
-		}
-	}
-
-	function _getOverpaymentTotalDai(uint _groupID) internal view returns(uint) {
-		uint out = 0;
-		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
-			out += _getOverpaymentToPay(_groupID, groups[_groupID].policyholders[i].phAddress);
-		}
-	}
-
-	function _getLoanRepaymentTotalDai(uint _groupID) internal view returns(uint) {
-		uint out = 0;
-		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
-			out += _getLoanRepaymentToPay(_groupID, groups[_groupID].policyholders[i].phAddress);
-		}		
-	}
 	
 	function _getPremiumToPay(uint _groupID, address _phAddress) internal view returns(uint) {
 		return groups[_groupID].premiumCostDai;
@@ -230,22 +215,16 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		}
 	}
 
-
-	function	_isHavePremium(uint _groupID, address _phAddress) internal view returns(bool) {
-		uint timeDelta = _getPolicyHolder(_groupID, _phAddress).premiumBoughtAt - now;
-
-		if(timeDelta < 30*24*3600*1000) {
-			return true;
-		} else {
-			return false;
-		}
+	function	_isPolicyholderPremium(uint _groupID, address _phAddress) internal view returns(bool) {
+		uint last = _getPolicyHolder(_groupID, _phAddress).lastPeriodPremium;
+		return (last == _getPeriodNumber(_groupID));
 	}
 
 	function _getPolicyHolderStatus(uint _groupID, address _phAddress) internal view returns(PolicyholderStatus) {
 		uint p = _getPeriodNumber(_groupID);
 		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
 			if(groups[_groupID].policyholders[i].phAddress==_phAddress) {
-				if(_isHavePremium(_groupID, _phAddress)) {
+				if(_isPolicyholderPremium(_groupID, _phAddress)) {
 					for(uint j=0; j<groups[_groupID].periods[p].claimsCount; j++) {
 						if(groups[_groupID].periods[p].claims[j].claimantAddress==_phAddress) {
 							return PolicyholderStatus.OpenedClaim;
@@ -283,12 +262,12 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 	}
 
 	function commitPremium(uint _groupID, uint _amountDai) public onlyByPolicyholder(_groupID) {
-		uint neededAmount = _getNeededAmount(_groupID, msg.sender);
-		require(_amountDai==neededAmount);
-		// TODO: require pre-period
-		// TODO: get tokens
+		require(_amountDai==_getNeededAmount(_groupID, msg.sender));
+		require(_getCurrentSubperiodType(_groupID)==SubperiodType.PrePeriod);
+		daiContract.transferFrom(msg.sender, address(this), _getNeededAmount(_groupID, msg.sender));
+
 		uint phIndex = _getPolicyHolderNumber(_groupID, msg.sender);
-		groups[_groupID].policyholders[phIndex].premiumBoughtAt = now;
+		groups[_groupID].policyholders[phIndex].lastPeriodPremium = _getPeriodNumber(_groupID);
 	}
 
 	function addChangeSubgroupRequest(uint _groupID, uint _newSubgroupID) public onlyByPolicyholder(_groupID) {
@@ -309,10 +288,6 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 			groups[_groupID].periods[periodIndex].loyalists[defectorsCount] = msg.sender;
 			groups[_groupID].periods[periodIndex].defectorsCount = defectorsCount+1;
 		}
-	}
-
-	function processGroup(uint _groupID) public {
-		// TODO
 	}
 
 	// ---------------------------------- INFO ----------------------------------
@@ -346,9 +321,13 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 	}
 
 	function getGroupInfo2(uint _groupID) public view returns(uint premiumsTotalDai, uint overpaymentTotalDai, uint loanRepaymentTotalDai) {
-		premiumsTotalDai = _getPremiumTotalDai(_groupID);
-		overpaymentTotalDai = _getOverpaymentTotalDai(_groupID);
-		premiumsTotalDai = _getLoanRepaymentTotalDai(_groupID);
+		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
+			if(_isPolicyholderPremium(_groupID, groups[_groupID].policyholders[i].phAddress)) {
+				premiumsTotalDai += _getPremiumToPay(_groupID, groups[_groupID].policyholders[i].phAddress);	
+				overpaymentTotalDai += _getOverpaymentToPay(_groupID, groups[_groupID].policyholders[i].phAddress);
+				loanRepaymentTotalDai += _getLoanRepaymentToPay(_groupID, groups[_groupID].policyholders[i].phAddress);
+			}
+		}		
 	}
 
 	function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view returns(uint, address[]) {
@@ -387,7 +366,11 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 		uint period = _getPeriodNumber(_groupID);
 		claimant = groups[_groupID].periods[_periodIndex].claims[_claimIndex].claimantAddress;
 		claimState = groups[_groupID].periods[_periodIndex].claims[_claimIndex].claimState;
-		// claimAmountDai = TODO;
+		
+		(uint premiumTotal, uint _a, uint _b) = getGroupInfo2(_groupID);
+		uint claimsCount = groups[_groupID].periods[_periodIndex].claimsCount;
+
+		claimAmountDai = premiumTotal / claimsCount;
 	}
 
 	function getClaimInfo2(uint _groupID, uint _periodIndex) public view returns(address[], address[]) {
