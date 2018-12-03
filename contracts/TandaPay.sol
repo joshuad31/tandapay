@@ -22,7 +22,7 @@ contract TandaPayLedger is ITandaPayLedgerInfo, ITandaPayLedger {
 	modifier onlyByPolicyholder(uint _groupID){
 		bool isPH = false;
 		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
-			if(groups[_groupID].policyholders[i]==msg.sender) {
+			if(groups[_groupID].policyholders[i].phAddress==msg.sender) {
 				isPH = true;
 			}
 		}
