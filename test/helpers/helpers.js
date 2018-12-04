@@ -13,16 +13,42 @@ function getSubgroups(count) {
 	return out;
 }
 
-function getPolicyholders(accounts, count) {
-	return accounts.slice(10, count+10);
+function getRandomSymb() {
+	var x = Math.random();
+	if(x<0.1) {
+		return '0';
+	} else if(x<0.2){
+		return '1';
+	} else if(x<0.3){
+		return '2';
+	} else if(x<0.4){
+		return '3';
+	} else if(x<0.5){
+		return '4';
+	} else if(x<0.6){
+		return '5';
+	} else{
+		return 'a';
+	}
 }
 
-async function payPremium(id, pc) {
-	var data = await tandaPayLedger.getAmountToPay();
-	var amountToPay = data[0].toNumber() + data[1].toNumber() + data[2].toNumber();
+function getPolicyholders(count) {
+	var arr = [];
+	for(var i=0; i<count; i++) {
+		var addr = '0x';
+		for(var j=0; j<40; j++) {
+			addr += getRandomSymb();
+		}	
+		arr.push(addr);
+	}
+	return arr;
+}
+
+async function payPremium(daiContract, tandaPayLedger, backend, id, pc) {
+	var amountToPay = await tandaPayLedger.getNeededAmount(id, pc);
 	await daiContract.mint(pc, amountToPay, {from:backend}).should.be.fulfilled;
 	await daiContract.approve(tandaPayLedger.address, amountToPay, {from:pc}).should.be.fulfilled;
-	await tandaPayLedger.commitPremium(id, amountToPay, {from:pc}).should.be.fulfilled;	
+	await tandaPayLedger.commitPremium(id, amountToPay, {from:pc}).should.be.fulfilled;
 }
 
 function getGroupId(tx) {
