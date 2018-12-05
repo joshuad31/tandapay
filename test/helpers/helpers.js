@@ -51,6 +51,17 @@ async function payPremium(daiContract, tandaPayLedger, backend, id, pc) {
 	await tandaPayLedger.commitPremium(id, amountToPay, {from:pc}).should.be.fulfilled;
 }
 
+function isInArray(arr, o) {
+	var out = false;
+	for(var i=0; i<arr.length; i++) {
+		if(arr[i]==o) {
+			out = true;
+		}
+	}
+	return out;
+}
+
+
 const getGroupId = tx=> tx.logs.filter(l => l.event == 'NewGroup')[0].args._groupId.toNumber();
 const getClaimId = tx=> tx.logs.filter(l => l.event == 'NewClaim')[0].args._claimId.toNumber();
 
@@ -59,3 +70,4 @@ module.exports.getPolicyholders = getPolicyholders;
 module.exports.payPremium = payPremium;
 module.exports.getGroupId = getGroupId;
 module.exports.getClaimId = getClaimId;
+module.exports.isInArray = isInArray;

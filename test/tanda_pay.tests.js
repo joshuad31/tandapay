@@ -2,7 +2,8 @@ var TandaPayLedger = artifacts.require("./TandaPayLedger");
 var DaiContract = artifacts.require("./DaiContract");
 
 const time = require('./helpers/time');
-const { getSubgroups, 
+const {  isInArray,
+	    getSubgroups, 
 	    getPolicyholders,
 	    payPremium, 
 	    getGroupId,
@@ -114,7 +115,6 @@ contract('TandaPayLedger', (accounts) => {
 	});
 
 	describe('ITandaPayLedger interface', function(){
-		console.log('policyholders:', policyholders);
 		describe('transferBackendAccount()', function () {
 			it('Should not be callable by non backend account',async() => {
 				await tandaPayLedger.transferBackendAccount(outsider, {from:outsider}).should.be.rejectedWith('revert');
@@ -361,10 +361,8 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if period!=active AND period!=pre-period',async() => {
-				// TODO: 
-				// await time.increase(time.duration.days((27)));
-				var num = await tandaPayLedger.getPeriodNumber(id); 
-				// await tandaPayLedger.removePolicyholderFromGroup(id, num, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
+				await time.increase(time.duration.days((33)));
+				await tandaPayLedger.removePolicyholderFromGroup(id, 1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if premium is paid by policyholder',async() => {
@@ -376,7 +374,6 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should succeed if all params are OK',async() => {
 				var subgroupIndex = 0;
 				var info = await tandaPayLedger.getSubgroupInfo(id, subgroupIndex).should.be.fulfilled;
-				console.log('info:', info)
 				assert.equal(info[0].toNumber(), 5);
 				for(var i=0; i<5; i++) {
 					assert.equal(info[1][i], policyholders[i]);	
@@ -480,15 +477,15 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup+1, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
-			/* TODO it('Should add request to change the subgroup',async() => {
+			it('Should add request to change the subgroup',async() => {
 				await time.increase(time.duration.days(3));
 				var newSubgroup = 1;
 				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
 				var info = await tandaPayLedger.getSubgroupInfo(id, 0);
-				assert.equal(true, isInPolicyholderArray(info, policyholders[0]));
+				assert.equal(true, isInArray(info[1], policyholders[0]));
 
 				var info = await tandaPayLedger.getSubgroupInfo(id, 1);
-				assert.equal(false, isInPolicyholderArray(info, policyholders[0]));
+				assert.equal(false, isInArray(info[1], policyholders[0]));
 			});
 
 			it('Should switch group automatically if active period ended',async() => {
@@ -496,12 +493,13 @@ contract('TandaPayLedger', (accounts) => {
 				var newSubgroup = 1;
 				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;				
 				await time.increase(time.duration.days(3));
-				var info = await tandaPayLedger.getSubgroupInfo(id, 0);
-				assert.equal(false, isInPolicyholderArray(info, policyholders[0]));
-
 				var info = await tandaPayLedger.getSubgroupInfo(id, 1);
-				assert.equal(true, isInPolicyholderArray(info, policyholders[0]));				
-			});*/ 
+				assert.equal(false, isInArray(info[1], policyholders[0]));
+				
+				await time.increase(time.duration.days(33));
+				var info = await tandaPayLedger.getSubgroupInfo(id, 1);
+				assert.equal(true, isInArray(info[1], policyholders[0]));				
+			});
 		});
 
 		describe('finalizeClaims()', function () {

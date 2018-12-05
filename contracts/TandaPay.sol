@@ -78,6 +78,7 @@ contract TandaPayLedger {
 	struct Policyholder {
 		uint subgroup;
 		uint nextSubgroup;
+		uint nextSubgroupFromPeriod;
 		address phAddress;
 		uint lastPeriodPremium;
 	}
@@ -157,6 +158,7 @@ contract TandaPayLedger {
 			Policyholder memory p = Policyholder(
 				_phAddressSubgroups[i], 	// subgroup;
 				_phAddressSubgroups[i], 	// nextSubgroup;
+				1,                       // nextSubgroupFromPeriod
 				_phAddresss[i], 		// phAddress;
 				0 					// lastPeriodPremium;
 			);
@@ -202,15 +204,15 @@ contract TandaPayLedger {
 
 	function _getSubgroupsCount(uint _groupID) internal view returns(uint maximum){
 		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
-			if(policyholders[_groupID][i].subgroup<maximum){
-				maximum = policyholders[_groupID][i].subgroup;
+			if(_getCurrentSubgroup(_groupID, policyholders[_groupID][i])<maximum){
+				maximum = _getCurrentSubgroup(_groupID, policyholders[_groupID][i]);
 			}
 		}
 	}
 
 	function _getSubgroupMembersCount(uint _groupID, uint _subGroupId) internal view returns(uint count){
 		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
-			if(policyholders[_groupID][i].subgroup == _subGroupId){
+			if(_getCurrentSubgroup(_groupID, policyholders[_groupID][i]) == _subGroupId){
 				count++;
 			}
 		}
@@ -232,16 +234,15 @@ contract TandaPayLedger {
 			return SubperiodType.OutOfPeriod;
 		}
 	}
-
 	
 	function _getPremiumToPay(uint _groupID, address _phAddress) internal view returns(uint) {
 		return groups[_groupID].premiumCostDai;
 	}
 
 	function _getOverpaymentToPay(uint _groupID, address _phAddress) internal view returns(uint) {
-		uint pcNumber = 0;//getPolicyHolderNumber(_groupID, _phAddress);
+		uint pcNumber = getPolicyHolderNumber(_groupID, _phAddress);
 		Policyholder pc = policyholders[_groupID][pcNumber];
-		uint subgroupMembersCount = _getSubgroupMembersCount(_groupID, pc.subgroup);
+		uint subgroupMembersCount = _getSubgroupMembersCount(_groupID, _getCurrentSubgroup(_groupID, pc));
 		return _getCurrentSubgroupOverpayment(subgroupMembersCount) * groups[_groupID].premiumCostDai;
 	}
 
@@ -329,11 +330,12 @@ contract TandaPayLedger {
 	function addChangeSubgroupRequest(uint _groupID, uint _newSubgroupID) public onlyByPolicyholder(_groupID) {
 		uint periodIndex = getPeriodNumber(_groupID);
 		require(!_isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
-		require(policyholders[_groupID][phIndex].subgroup == policyholders[_groupID][phIndex].nextSubgroup);
+		require(_getCurrentSubgroup(_groupID, policyholders[_groupID][phIndex]) == policyholders[_groupID][phIndex].nextSubgroup);
 		require(getSubperiodType(_groupID, periodIndex) == SubperiodType.ActivePeriod);
 		
 		uint phIndex = getPolicyHolderNumber(_groupID, msg.sender);
 		policyholders[_groupID][phIndex].nextSubgroup = _newSubgroupID;
+		policyholders[_groupID][phIndex].nextSubgroupFromPeriod = periodIndex+1;
 	}
 
 	event FINALIZE(uint _groupID, uint periodIndex, bool _isPolicyholderVoted, bool _isPolicyholderHaveClaim);
@@ -413,11 +415,21 @@ contract TandaPayLedger {
 		}		
 	}
 
+	function _getCurrentSubgroup(uint _groupID, Policyholder _p) internal view returns(uint) {
+		uint period = getPeriodNumber(_groupID);
+		if(_p.nextSubgroupFromPeriod<=period) {
+			return _p.nextSubgroup;
+		} else {
+			return _p.subgroup;
+		}
+	}
+	
+
 	function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view returns(uint, address[]) {
 		uint phCount = 0;
 		address[] memory phArr = new address[](MAX_SUBGROUP_MEMBERS_COUNT);
 		for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
-			if(policyholders[_groupID][i].subgroup==_subgroupIndex) {
+			if(_getCurrentSubgroup(_groupID, policyholders[_groupID][i])==_subgroupIndex) {
 				phArr[phCount] = (policyholders[_groupID][i].phAddress);
 				phCount++;
 			}
@@ -426,7 +438,7 @@ contract TandaPayLedger {
 	}
 
 	function getPolicyholderInfo(uint _groupID, address _phAddress) public view returns(uint currentSubgroupIndex, uint nextSubgroupIndex, PolicyholderStatus status) {
-		currentSubgroupIndex = _getPolicyHolder(_groupID, _phAddress).subgroup;
+		currentSubgroupIndex = _getCurrentSubgroup(_groupID, _getPolicyHolder(_groupID, _phAddress));
 		nextSubgroupIndex = _getPolicyHolder(_groupID, _phAddress).nextSubgroup;
 		status = _getPolicyHolderStatus(_groupID, _phAddress);
 	}
