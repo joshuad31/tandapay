@@ -51,14 +51,8 @@ async function payPremium(daiContract, tandaPayLedger, backend, id, pc) {
 	await tandaPayLedger.commitPremium(id, amountToPay, {from:pc}).should.be.fulfilled;
 }
 
-function getGroupId(tx) {
-	return {};
-}
-
-function getClaimId(tx) {
-	return 999;
-}
-
+const getGroupId = tx=> tx.logs.filter(l => l.event == 'NewGroup')[0].args._groupId.toNumber();
+const getClaimId = tx=> tx.logs.filter(l => l.event == 'NewClaim')[0].args._claimId.toNumber();
 
 module.exports.getSubgroups = getSubgroups;
 module.exports.getPolicyholders = getPolicyholders;
