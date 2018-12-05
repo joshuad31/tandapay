@@ -55,7 +55,13 @@ function getGroupId(tx) {
 	return {};
 }
 
+function getClaimId(tx) {
+	return 999;
+}
+
+
 module.exports.getSubgroups = getSubgroups;
 module.exports.getPolicyholders = getPolicyholders;
 module.exports.payPremium = payPremium;
 module.exports.getGroupId = getGroupId;
+module.exports.getClaimId = getClaimId;

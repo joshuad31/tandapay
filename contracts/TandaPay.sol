@@ -23,8 +23,10 @@ contract TandaPayLedger {
 
 	enum SubperiodType {
 		PrePeriod,		// 3 days
-		ActivePeriod,	// 30 days
-		PostPeriod		// 3 days
+		ActivePeriod,	// 24 days
+		PostPeriod,		// 3 days
+		BeforePeriod,
+		OutOfPeriod
 	}
 
 	enum ClaimState {
@@ -32,7 +34,8 @@ contract TandaPayLedger {
 		Finalizing,		// post-perdiod is currently running
 		Paid,
 		Rejected
-	}	
+	}
+
 	DaiContract public daiContract;
 
 	address public backendAccount;
@@ -211,18 +214,23 @@ contract TandaPayLedger {
 		}
 	}	
 
-	function getCurrentSubperiodType(uint _groupID) public view returns(SubperiodType) {
+	function getSubperiodType(uint _groupID, uint _periodNumber) public view returns(SubperiodType) {
 		uint timePassed = (now - groups[_groupID].createdAt);
 		uint dayNum = timePassed/(1 days);
-		uint periodDayNum = dayNum - 30*(getPeriodNumber(_groupID) - 1);
-		if(periodDayNum<3) {
+		uint periodDayNum = dayNum - 30*(_periodNumber - 1);
+		if(30*(_periodNumber - 1) > dayNum) {
+			return SubperiodType.BeforePeriod;
+		}else if(periodDayNum<3) {
 			return SubperiodType.PrePeriod;
-		} else if((periodDayNum>=3)&&(periodDayNum<27)) {
+		} else if((periodDayNum>=3)&&(periodDayNum<33)) {
 			return SubperiodType.ActivePeriod;
-		} else {
+		} else if((periodDayNum>=33)&&(periodDayNum<36)) {
 		 	return SubperiodType.PostPeriod;
+		} else {
+			return SubperiodType.OutOfPeriod;
 		}
 	}
+
 	
 	function _getPremiumToPay(uint _groupID, address _phAddress) internal view returns(uint) {
 		return groups[_groupID].premiumCostDai;
@@ -250,8 +258,8 @@ contract TandaPayLedger {
 		} else if(7==_subgroupMembersCount) {
 			return 167;
 		} else {
-			// revert();
-			return 100;
+			revert();
+			// return 100;
 		}
 	}
 
@@ -277,9 +285,14 @@ contract TandaPayLedger {
 		return PolicyholderStatus.PremiumUnpaid;
 	}	
 
+
 	function addClaim(uint _groupID, address _claimantAddress) public onlyByBackend returns(uint claimIndex) {
 		// TODO: check no claims for that _claimantAddress
 		uint period = getPeriodNumber(_groupID);
+		require(SubperiodType.ActivePeriod==getSubperiodType(_groupID, period));
+		require(_groupID<groupsCount);
+		require(_isPolicyholderPremium(_groupID, _claimantAddress));
+		
 		uint count = periods[_groupID][period].claimsCount;
 
 		periods[_groupID][period].claims[count] = Claim(
@@ -292,7 +305,11 @@ contract TandaPayLedger {
 		claimIndex = count;
 	}
 	
-	function removePolicyholderFromGroup(uint _groupID, address _phAddress) public onlyByBackend {
+	function removePolicyholderFromGroup(uint _groupID, uint _periodNumber, address _phAddress) public onlyByBackend {
+		SubperiodType st = getSubperiodType(_groupID, _periodNumber);
+		require(!_isPolicyholderPremium(_groupID, _phAddress));
+		require((st==SubperiodType.ActivePeriod) || (st==SubperiodType.PrePeriod));
+		
 		uint phIndex = getPolicyHolderNumber(_groupID, _phAddress);
 		uint count = groups[_groupID].policyholdersCount;
 
@@ -302,8 +319,10 @@ contract TandaPayLedger {
 	}
 
 	function commitPremium(uint _groupID, uint _amountDai) public onlyByPolicyholder(_groupID) {
+		uint period = getPeriodNumber(_groupID);
 		require(_amountDai==getNeededAmount(_groupID, msg.sender));
-		require(getCurrentSubperiodType(_groupID)==SubperiodType.PrePeriod);
+		require(getSubperiodType(_groupID, period)==SubperiodType.PrePeriod);
+		
 		daiContract.transferFrom(msg.sender, address(this), getNeededAmount(_groupID, msg.sender));
 
 		uint phIndex = getPolicyHolderNumber(_groupID, msg.sender);
@@ -311,13 +330,21 @@ contract TandaPayLedger {
 	}
 
 	function addChangeSubgroupRequest(uint _groupID, uint _newSubgroupID) public onlyByPolicyholder(_groupID) {
-		// TODO: requires
+		uint periodIndex = getPeriodNumber(_groupID);
+		require(!_isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
+		require(policyholders[_groupID][phIndex].subgroup == policyholders[_groupID][phIndex].nextSubgroup);
+		require(getSubperiodType(_groupID, periodIndex) == SubperiodType.ActivePeriod);
+		
 		uint phIndex = getPolicyHolderNumber(_groupID, msg.sender);
 		policyholders[_groupID][phIndex].nextSubgroup = _newSubgroupID;
 	}
 
 	function finalizeClaims(uint _groupID, bool _loyalist) public onlyByPolicyholder(_groupID) {
 		uint periodIndex = getPeriodNumber(_groupID);
+		require(!_isPolicyholderVoted(_groupID, periodIndex, msg.sender));
+		require(!_isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
+		require(SubperiodType.PostPeriod==getSubperiodType(_groupID, periodIndex));
+		
 		// TODO: check that msg.sender not voted
 		if(_loyalist) {
 			uint loyalistsCount = periods[_groupID][periodIndex].loyalistsCount;
@@ -327,6 +354,28 @@ contract TandaPayLedger {
 			uint defectorsCount = periods[_groupID][periodIndex].defectorsCount;
 			periods[_groupID][periodIndex].loyalists[defectorsCount] = msg.sender;
 			periods[_groupID][periodIndex].defectorsCount = defectorsCount+1;
+		}
+	}
+
+	function _isPolicyholderVoted(uint _groupID, uint _periodIndex, address _phAddress)	internal view returns(bool isIt) {
+		for(uint i=0; i<periods[_groupID][_periodIndex].loyalistsCount; i++) {
+			if(_phAddress == periods[_groupID][_periodIndex].loyalists[i]) {
+				isIt = true;
+			}
+		}
+
+		for(uint j=0; j<periods[_groupID][_periodIndex].defectorsCount; j++) {
+			if(_phAddress == periods[_groupID][_periodIndex].defectors[j]) {
+				isIt = true;
+			}
+		}		
+	}
+
+	function _isPolicyholderHaveClaim(uint _groupID, uint _periodIndex, address _phAddress)	internal view returns(bool isIt) {	
+		for(uint i=0; i<periods[_groupID][_periodIndex].claimsCount; i++) {
+			if(_phAddress == periods[_groupID][_periodIndex].claims[i].claimantAddress) {
+				isIt = true;
+			}
 		}
 	}
 
@@ -370,9 +419,9 @@ contract TandaPayLedger {
 		}		
 	}
 
-	function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view returns(uint, address[]) {
-		// address[] storage policyholders;
-		// uint policyholdersCount;
+	function getSubgroupInfo(uint _groupID, uint _subgroupIndex) public view returns(uint policyholdersCount, address[] policyholders) {
+		// address[] memory policyholders;
+		// uint policyholdersCount;	
 		// for(uint i=0; i<groups[_groupID].policyholdersCount; i++) {
 		// 	if(policyholders[_groupID][i].subgroup==_subgroupIndex) {
 		// 		policyholders.push(policyholders[_groupID][i].phAddress);
@@ -395,7 +444,7 @@ contract TandaPayLedger {
 
 	function getCurrentPeriodInfo(uint _groupID) public view returns(uint periodIndex, SubperiodType subperiodType) {
 		periodIndex = getPeriodNumber(_groupID);
-		subperiodType = getCurrentSubperiodType(_groupID);
+		subperiodType = getSubperiodType(_groupID, periodIndex);
 	}
 
 	function getClaimCount(uint _groupID, uint _periodIndex) public view returns(uint countOut) {
