@@ -236,10 +236,16 @@ contract TandaPayLedger {
 	}
 	
 	function _getPremiumToPay(uint _groupID, address _phAddress) internal view returns(uint) {
+		if(_isPolicyholderPremium(_groupID, _phAddress)) {
+			return 0;
+		}
 		return groups[_groupID].premiumCostDai;
 	}
 
 	function _getOverpaymentToPay(uint _groupID, address _phAddress) internal view returns(uint) {
+		if(_isPolicyholderPremium(_groupID, _phAddress)) {
+			return 0;
+		}		
 		uint pcNumber = getPolicyHolderNumber(_groupID, _phAddress);
 		Policyholder pc = policyholders[_groupID][pcNumber];
 		uint subgroupMembersCount = _getSubgroupMembersCount(_groupID, _getCurrentSubgroup(_groupID, pc));
@@ -247,6 +253,9 @@ contract TandaPayLedger {
 	}
 
 	function _getLoanRepaymentToPay(uint _groupID, address _phAddress) internal view returns(uint) {
+		if(_isPolicyholderPremium(_groupID, _phAddress)) {
+			return 0;
+		}		
 		uint MTR = 3; // TODO: ???
 		return (groups[_groupID].premiumCostDai + _getOverpaymentToPay(_groupID, _phAddress)) / (MTR - 1);
 	}
@@ -334,6 +343,7 @@ contract TandaPayLedger {
 		require(getSubperiodType(_groupID, periodIndex) == SubperiodType.ActivePeriod);
 		
 		uint phIndex = getPolicyHolderNumber(_groupID, msg.sender);
+		policyholders[_groupID][phIndex].subgroup = policyholders[_groupID][phIndex].nextSubgroup;
 		policyholders[_groupID][phIndex].nextSubgroup = _newSubgroupID;
 		policyholders[_groupID][phIndex].nextSubgroupFromPeriod = periodIndex+1;
 	}
@@ -459,7 +469,6 @@ contract TandaPayLedger {
 	}
 
 	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view returns(address claimant, ClaimState claimState, uint claimAmountDai) {
-		uint period = getPeriodNumber(_groupID);
 		claimant = periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress;
 		claimState = periods[_groupID][_periodIndex].claims[_claimIndex].claimState;
 		
