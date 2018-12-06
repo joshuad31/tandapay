@@ -166,7 +166,7 @@ contract('TandaPayLedger', (accounts) => {
 					maxClaimDai, 
 					{from:backend}).should.be.fulfilled;				
 				var groupId = await tandaPayLedger.getTandaGroupID(0).should.be.fulfilled;
-				assert.eq(groupId, 0);
+				assert.equal(groupId, 0);
 			});
 		});
 
@@ -196,7 +196,7 @@ contract('TandaPayLedger', (accounts) => {
 				var id = await getGroupId(tx);
 				var groupData = await tandaPayLedger.getGroupInfo(id).should.be.fulfilled;
 				assert.equal(groupData[0], secretary);
-				assert.equal(groupData[1].toNumber(), 10);
+				assert.equal(groupData[1].toNumber(), 9);
 				assert.equal(groupData[2].toNumber(), monthToRepayTheLoan);
 				assert.equal(groupData[3].toNumber(), premiumCostDai);
 				assert.equal(groupData[4].toNumber(), maxClaimDai);
@@ -330,7 +330,7 @@ contract('TandaPayLedger', (accounts) => {
 					maxClaimDai, 
 					{from:backend}).should.be.fulfilled;
 				var id = await getGroupId(tx);
-				var subgroupIndex = 10;
+				var subgroupIndex = 99;
 				var info = await tandaPayLedger.getSubgroupInfo(id, subgroupIndex).should.be.rejectedWith('revert');				
 			});
 
@@ -363,6 +363,7 @@ contract('TandaPayLedger', (accounts) => {
 					{from:backend}).should.be.fulfilled;
 				var id = await getGroupId(tx);
 				var newSubgroup = 1;
+				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
 
 				var subgroupIndex = 0;
@@ -391,6 +392,7 @@ contract('TandaPayLedger', (accounts) => {
 					{from:backend}).should.be.fulfilled;
 				var id = await getGroupId(tx);
 				var newSubgroup = 1;
+				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addChangeSubgroupRequest(id, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;
 
 				var subgroupIndex = 0;
@@ -438,7 +440,7 @@ contract('TandaPayLedger', (accounts) => {
 					maxClaimDai, 
 					{from:backend}).should.be.fulfilled;
 				var id = await getGroupId(tx);
-				await tandaPayLedger.getPolicyholderInfo(id, accounts[99]).should.be.rejectedWith('revert');
+				await tandaPayLedger.getPolicyholderInfo(id, outsider).should.be.rejectedWith('revert');
 			});
 
 			it('Should return valid data', async() => {
@@ -451,7 +453,7 @@ contract('TandaPayLedger', (accounts) => {
 					maxClaimDai, 
 					{from:backend}).should.be.fulfilled;
 				var id = await getGroupId(tx);
-				var data = await tandaPayLedger.getPolicyholderInfo(id, policyholders[50]).should.be.fulfilled;
+				var data = await tandaPayLedger.getPolicyholderInfo(id, policyholders[49]).should.be.fulfilled;
 				assert.equal(data[0], 9);
 				assert.equal(data[1], 9);			
 			});
@@ -468,6 +470,7 @@ contract('TandaPayLedger', (accounts) => {
 				var id = await getGroupId(tx);
 
 				var newSubgroup = 1;
+				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;				
 			
 				var data = await tandaPayLedger.getPolicyholderInfo(id, policyholders[0]).should.be.fulfilled;
@@ -487,6 +490,7 @@ contract('TandaPayLedger', (accounts) => {
 				var id = await getGroupId(tx);
 
 				var newSubgroup = 1;
+				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addChangeSubgroupRequest(id+1, newSubgroup, {from:policyholders[0]}).should.be.fulfilled;				
 				time.increase(time.duration.days(30));
 				var data = await tandaPayLedger.getPolicyholderInfo(id, policyholders[0]).should.be.fulfilled;
@@ -721,31 +725,31 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if groupID is wrong', async() => {
-				var period = 0;
+				var period = 1;
 				await time.increase(time.duration.days(3));
 				var data = await tandaPayLedger.getClaimCount(id+1, period).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if wrong period', async() => {
-				var period = 0;
+				var period = 1;
 				await time.increase(time.duration.days(3));
 				var data = await tandaPayLedger.getClaimCount(id, period+1).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if not active period or post-period', async() => {
-				var period = 0;
+				var period = 1;
 				var data = await tandaPayLedger.getClaimCount(id, period).should.be.rejectedWith('revert');
 			});
 
 			it('Should return 0 if no claims open', async() => {
-				var period = 0;
+				var period = 1;
 				await time.increase(time.duration.days(3));
 				var data = await tandaPayLedger.getClaimCount(id, period);	
 				assert.equal(data.toNumber(), 0);
 			});
 
 			it('Should return valid count', async() => {
-				var period = 0;
+				var period = 1;
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -774,7 +778,7 @@ contract('TandaPayLedger', (accounts) => {
 				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
-				var periodIndex = 0;
+				var periodIndex = 1;
 				var claimIndex = 0
 				var data = await tandaPayLedger.getClaimInfo(id+1, periodIndex, claimIndex).should.be.rejectedWith('revert');
 			});
@@ -784,13 +788,13 @@ contract('TandaPayLedger', (accounts) => {
 				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
-				var periodIndex = 0;
+				var periodIndex = 1;
 				var claimIndex = 0
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex+1, claimIndex).should.be.rejectedWith('revert');				
 			});
 
 			it('Should fail if not active period or post-period', async() => {
-				var periodIndex = 0;
+				var periodIndex = 1;
 				var claimIndex = 0
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, claimIndex).should.be.rejectedWith('revert');				
 			});
@@ -800,7 +804,7 @@ contract('TandaPayLedger', (accounts) => {
 				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
-				var periodIndex = 0;
+				var periodIndex = 1;
 				var claimIndex = 0
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, claimIndex+1).should.be.rejectedWith('revert');				
 			});
@@ -814,7 +818,7 @@ contract('TandaPayLedger', (accounts) => {
 
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
-				var periodIndex = 0;
+				var periodIndex = 1;
 				var claimIndex = 0
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, claimIndex);
 
@@ -911,7 +915,7 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
-				await time.increase(time.duration.days(27));
+				await time.increase(time.duration.days(30));
 				var period = await tandaPayLedger.getPeriodNumber(id);
 				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[0]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[1]}).should.be.fulfilled;
