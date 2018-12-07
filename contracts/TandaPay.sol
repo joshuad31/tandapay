@@ -51,6 +51,11 @@ contract TandaPayLedger {
 		_; 
 	}
 
+	modifier onlyByCron() {
+		require(msg.sender==cronAccount);
+		_; 
+	}	
+
 	modifier onlyValidGroupId(uint _groupID) {
 		require(_groupID < groupsCount);
 		_;
@@ -367,7 +372,7 @@ contract TandaPayLedger {
 
 	function finalizeClaims(uint _groupID, bool _loyalist) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) {
 		uint periodIndex = _getPeriodNumber(_groupID) - 1;
-		emit FINALIZE(_groupID, periodIndex, _isPolicyholderVoted(_groupID, periodIndex, msg.sender), _isPolicyholderHaveClaim(_groupID, _periodIndex, msg.sender));
+		emit FINALIZE(_groupID, periodIndex, _isPolicyholderVoted(_groupID, periodIndex, msg.sender), _isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
 		require(!_isPolicyholderVoted(_groupID, periodIndex, msg.sender));
 		require(!_isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
 		require(SubperiodType.PostPeriod==getSubperiodType(_groupID, periodIndex));
@@ -507,7 +512,19 @@ contract TandaPayLedger {
 		countOut = periods[_groupID][_periodIndex].claims.length;
 	}
 
-	function receiveClaim(uint _groupID, uint _periodIndex, uint _claimIndex) public onlyValidGroupId(_groupID) onlyPolicyholder(_groupID, msg.sender) {
+	function processGroup(uint _groupID) public onlyByCron {
+		uint periodIndex = _getPeriodNumber(_groupID) - 1;
+		require(getSubperiodType(_groupID, periodIndex)==SubperiodType.PostPeriod);
+		
+		// Send all claimRewards to claimants
+		for(uint claimIndex=0; claimIndex<periods[_groupID][periodIndex].claims.length; claimIndex++) {
+			if(_getClaimState(_groupID, periodIndex, claimIndex) == ClaimState.Finalizing) {
+				_sendClaim(_groupID, periodIndex, claimIndex);
+			}
+		}
+	}
+
+	function _sendClaim(uint _groupID, uint _periodIndex, uint _claimIndex) internal onlyValidGroupId(_groupID) {
 		uint period = _getPeriodNumber(_groupID);
 		require(_claimIndex < periods[_groupID][_periodIndex].claims.length);
 		require(_periodIndex <= period);

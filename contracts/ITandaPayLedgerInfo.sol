@@ -22,14 +22,16 @@ contract ITandaPayLedgerInfo {
 	}
 
 	enum SubperiodType {
-		PrePeriod,		// 3 days
+		PrePeriod,	// 3 days
 		ActivePeriod,	// 30 days
-		PostPeriod		// 3 days
+		PostPeriod,	// 3 days
+		BeforePeriod,
+		OutOfPeriod
 	}
 
 	enum ClaimState {
-		Opened,			// no post-period is running currently
-		Finalizing,		// post-perdiod is currently running
+		Opened,	  // no post-period is running currently
+		Finalizing, // post-perdiod is currently running
 		Paid,
 		Rejected
 	}
@@ -48,7 +50,7 @@ contract ITandaPayLedgerInfo {
 	* @dev Get the group info
 	* @param _groupID Selected group ID
 	*/
-	function getGroupInfo2(uint _groupID) public view 
+	function getGroupInfo2(uint _groupID, uint _periodIndex) public view 
 		returns(uint premiumsTotalDai, uint overpaymentTotalDai, uint loanRepaymentTotalDai); 
 
 	/**
