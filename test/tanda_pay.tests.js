@@ -530,7 +530,7 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.finalizeClaims(id, periodIndex, false, {from:policyholders[0]}).should.be.rejectedWith('revert');	
 			});
 
-			// ***
+			
 			it('Should fail if user already finalized (selected loyalist/defector option before)',async() => {
 				var periodIndex = 1;
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
@@ -540,17 +540,16 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should auto choose <loyalist> if no answer in 3 days (when post period ended)',async() => {
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = data[0].toNumber();
+	
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[1]);
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[2]);
 				await time.increase(time.duration.days(3));
 
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
-
-				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
-				var premium = data[0].toNumber();
-
-				await time.increase(time.duration.days(3));
+				await time.increase(time.duration.days(30));
 
 				var data = await tandaPayLedger.getClaimInfo(id, 1, 0);
 				assert.equal(data[0], policyholders[0]);
