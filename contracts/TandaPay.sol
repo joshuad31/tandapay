@@ -508,17 +508,86 @@ contract TandaPayLedger {
 		countOut = periods[_groupID][_periodIndex].claims.length;
 	}
 
-	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view onlyValidGroupId(_groupID) returns(address claimant, ClaimState claimState, uint claimAmountDai) {
-		uint periodIndex = getPeriodNumber(_groupID);
+	function receiveClaim(uint _groupID, uint _periodIndex, uint _claimIndex) public onlyValidGroupId(_groupID) onlyPolicyholder(_groupID, msg.sender) {
+		uint period = getPeriodNumber(_groupID);
 		require(_claimIndex < periods[_groupID][_periodIndex].claims.length);
-		require(_periodIndex <= periodIndex);
+		require(_periodIndex <= period);
+
+		Claim memory c = periods[_groupID][_periodIndex].claims[_claimIndex];
+		uint amount = _getClaimAmount(_groupID, _periodIndex, _claimIndex);
+		require(amount > 0);
+		require(_getClaimState(_groupID, _periodIndex, _claimIndex) == ClaimState.Finalizing);
+
+		daiContract.approve(c.claimantAddress, amount);
+	}
+
+	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal onlyValidGroupId(_groupID) view returns(bool) {
+		uint period = getPeriodNumber(_groupID);
+		require(_claimIndex < periods[_groupID][_periodIndex].claims.length);
+		require(_periodIndex <= period);	
+
+		address[] defectors = periods[_groupID][_periodIndex].defectors;
+		Claim memory claim = periods[_groupID][_periodIndex].claims[_claimIndex];
+		Policyholder memory pcClaimant = _getPolicyHolder(_groupID, claim.claimantAddress);
+		
+		uint count = 0;
+		for(uint i=0; i<defectors.length; i++) {
+			Policyholder memory pcDefector = _getPolicyHolder(_groupID, defectors[i]);
+			if(_getCurrentSubgroup(_groupID, pcDefector) == _getCurrentSubgroup(_groupID, pcClaimant)) {
+				count++;
+			}
+		}
+
+		if(count>=2) {
+			return true;
+		} else {
+			return false;
+		}
+	}	
+
+	function _getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) internal onlyValidGroupId(_groupID) view returns(uint) {
+		uint period = getPeriodNumber(_groupID);
+		require(_claimIndex < periods[_groupID][_periodIndex].claims.length);
+		require(_periodIndex <= period);
+
+		ClaimState cs = _getClaimState(_groupID, _periodIndex, _claimIndex);
+		if((cs!=ClaimState.Finalizing)&&(cs!=ClaimState.Paid)) {
+			return 0;
+		}
+
+		uint defected = groups[_groupID].premiumCostDai * periods[_groupID][_periodIndex].defectors.length;
+		uint premiumFund = periods[_groupID][_periodIndex].premiumsTotalDai - defected;
+		return premiumFund / periods[_groupID][_periodIndex].claims.length;
+	}
+
+	function _getClaimState(uint _groupID, uint _periodIndex, uint _claimIndex) internal onlyValidGroupId(_groupID) view returns(ClaimState) {
+		uint period = getPeriodNumber(_groupID);
+		require(_claimIndex < periods[_groupID][_periodIndex].claims.length);
+		require(_periodIndex <= period);
+
+		SubperiodType st = getSubperiodType(_groupID, _periodIndex);
+
+		if(ClaimState.Paid == periods[_groupID][_periodIndex].claims[_claimIndex].claimState) {
+			return ClaimState.Paid;
+		} else if(_isClaimRejected(_groupID, _periodIndex, _claimIndex)) {
+			return ClaimState.Rejected;
+		} else if(st==SubperiodType.ActivePeriod) {
+			return ClaimState.Opened;
+		} else if(st==SubperiodType.PostPeriod) {
+			return ClaimState.Finalizing;
+		} else {
+			revert(); // it cannot be
+		}
+	}	
+
+	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view onlyValidGroupId(_groupID) returns(address claimant, ClaimState claimState, uint claimAmountDai) {
+		uint period = getPeriodNumber(_groupID);
+		require(_claimIndex < periods[_groupID][_periodIndex].claims.length);
+		require(_periodIndex <= period);
 
 		claimant = periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress;
-		claimState = periods[_groupID][_periodIndex].claims[_claimIndex].claimState;
-		
-		uint defected = groups[_groupID].premiumCostDai * periods[_groupID][periodIndex].defectors.length;
-		uint premiumFund = periods[_groupID][_periodIndex].premiumsTotalDai - defected;
-		claimAmountDai = premiumFund / periods[_groupID][_periodIndex].claims.length;
+		claimState = _getClaimState(_groupID, _periodIndex, _claimIndex);
+		claimAmountDai = _getClaimAmount(_groupID, _periodIndex, _claimIndex);
 	}
 
 	function getClaimInfo2(uint _groupID, uint _periodIndex) public view onlyValidGroupId(_groupID) returns(address[] loyalists, address[] defectors) {

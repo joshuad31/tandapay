@@ -57,12 +57,12 @@ contract('TandaPayLedger', (accounts) => {
 
 	describe('ITandaPayLedgerInfo interface', function(){
 		describe('getTandaGroupCountForSecretary()', function () {
-			it('1: Should return 0 if no groups',async() => {
+			it('Should return 0 if no groups',async() => {
 				var count = await tandaPayLedger.getTandaGroupCountForSecretary(secretary);
 				assert.equal(count.toNumber(), 0);
 			});
 
-			it('2: Should return 0 if no groups for current secretary',async() => {
+			it('Should return 0 if no groups for current secretary',async() => {
 				var secretary2 = accounts[2];
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
@@ -78,7 +78,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(count.toNumber(), 0);				
 			});
 
-			it('3: Should return 1 if one group',async() => {
+			it('Should return 1 if one group',async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -95,7 +95,7 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getTandaGroupIDForSecretary()', function () {
-			it('4: Should fail if index is wrong', async() => {
+			it('Should fail if index is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -108,7 +108,7 @@ contract('TandaPayLedger', (accounts) => {
 				var groupId = await tandaPayLedger.getTandaGroupIDForSecretary(secretary, 1).should.be.rejectedWith('revert');
 			});
 
-			it('5: Should return valid group ID if index is OK', async() => {
+			it('Should return valid group ID if index is OK', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -123,12 +123,12 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getTandaGroupCount()', function () {
-			it('6: Should return 0 if no groups',async() => {
+			it('Should return 0 if no groups',async() => {
 				var count = await tandaPayLedger.getTandaGroupCount();
 				assert.equal(count.toNumber(), 0);		
 			});
 
-			it('7: Should return 1 if one group',async() => {
+			it('Should return 1 if one group',async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -145,11 +145,11 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getTandaGroupID()', function () {
-			it('8: Should fail if index is wrong', async() => {
+			it('Should fail if index is wrong', async() => {
 				await tandaPayLedger.getTandaGroupID(1).should.be.rejectedWith('revert');
 			});
 
-			it('9: Should return valid group ID if index is OK', async() => {
+			it('Should return valid group ID if index is OK', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -164,7 +164,7 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getGroupInfo()', function () {
-			it('10: Should fail if index is wrong', async() => {
+			it('Should fail if index is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -177,7 +177,7 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.getGroupInfo(id+1).should.be.rejectedWith('revert');
 			});
 
-			it('11: Should return all data', async() => {
+			it('Should return all data', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -197,7 +197,7 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getGroupInfo2()', function () {
-			it('12: Should fail if index is wrong', async() => {
+			it('Should fail if index is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -212,7 +212,7 @@ contract('TandaPayLedger', (accounts) => {
 				var groupData = await tandaPayLedger.getGroupInfo2(id+1, periodIndex).should.be.rejectedWith('revert');
 			});
 
-			it('13: Should return all data for pre-period', async() => {
+			it('Should return all data for pre-period', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -233,7 +233,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(groupData[2].toNumber(), loanRepaymentTotalDai);
 			});
 
-			it('14: Should return updated data for active period', async() => {
+			it('Should return updated data for active period', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -256,7 +256,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(groupData[2].toNumber(), loanRepaymentTotalDai);				
 			});
 
-			it('15: Should return updated data for post-period period', async() => {
+			it('Should return updated data for post-period period', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -279,7 +279,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(groupData[2].toNumber(), loanRepaymentTotalDai);				
 			});
 
-			it('16: Should return all data for next period', async() => {
+			it('Should return all data for next period', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -305,7 +305,7 @@ contract('TandaPayLedger', (accounts) => {
 
 		describe('getSubgroupInfo()', function () {
 			// 	returns(uint policyholdersCount, address[] policyholders);			
-			it('17: Should fail if index is wrong', async() => {
+			it('Should fail if index is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -319,7 +319,7 @@ contract('TandaPayLedger', (accounts) => {
 				var info = await tandaPayLedger.getSubgroupInfo(id+1, subgroupIndex).should.be.rejectedWith('revert');
 			});
 
-			it('18: Should fail if subgroup index is wrong', async() => {
+			it('Should fail if subgroup index is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -333,7 +333,7 @@ contract('TandaPayLedger', (accounts) => {
 				var info = await tandaPayLedger.getSubgroupInfo(id, subgroupIndex).should.be.rejectedWith('revert');				
 			});
 
-			it('19: Should return valid data', async() => {
+			it('Should return valid data', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -351,7 +351,7 @@ contract('TandaPayLedger', (accounts) => {
 				}
 			});
 
-			it('20: Should return valid data when policyholder requested to change the subgroup', async() => {
+			it('Should return valid data when policyholder requested to change the subgroup', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -380,7 +380,7 @@ contract('TandaPayLedger', (accounts) => {
 				}
 			});
 
-			it('21: Should return valid data after subgroup was auto changed for policyholder', async() => {
+			it('Should return valid data after subgroup was auto changed for policyholder', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -419,7 +419,7 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getPolicyholderInfo()', function () {
-			it('22: Should fail if index is wrong', async() => {
+			it('Should fail if index is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -432,7 +432,7 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.getPolicyholderInfo(id+1, policyholders[0]).should.be.rejectedWith('revert');
 			});
 
-			it('23: Should fail if address is wrong', async() => {
+			it('Should fail if address is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -445,7 +445,7 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.getPolicyholderInfo(id, outsider).should.be.rejectedWith('revert');
 			});
 
-			it('24: Should return valid data', async() => {
+			it('Should return valid data', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -460,7 +460,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(data[1], 9);			
 			});
 
-			it('25: Should return valid data when policyholder requested to change the subgroup', async() => {
+			it('Should return valid data when policyholder requested to change the subgroup', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -480,7 +480,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(data[1], 1);					
 			});
 
-			it('26: Should return valid data after subgroup was auto changed for policyholder', async() => {
+			it('Should return valid data after subgroup was auto changed for policyholder', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -502,7 +502,7 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getAmountToPay(id, policyholders[0])', function () {
-			it('27: Should fail if index is wrong', async() => {
+			it('Should fail if index is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -515,7 +515,7 @@ contract('TandaPayLedger', (accounts) => {
 				var amountData = await tandaPayLedger.getAmountToPay(id+1, policyholders[0]).should.be.rejectedWith('revert');
 			});
 
-			it('28: Should fail if address is wrong', async() => {
+			it('Should fail if address is wrong', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -528,7 +528,7 @@ contract('TandaPayLedger', (accounts) => {
 				var amountData = await tandaPayLedger.getAmountToPay(id, outsider).should.be.rejectedWith('revert');			
 			});
 
-			it('29: Should fail if not a pre-period', async() => {
+			it('Should fail if not a pre-period', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -542,7 +542,7 @@ contract('TandaPayLedger', (accounts) => {
 				var amountData = await tandaPayLedger.getAmountToPay(id, policyholders[0]).should.be.rejectedWith('revert');
 			});
 
-			it('30: Should return 0 if already paid', async() => {
+			it('Should return 0 if already paid', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -561,7 +561,7 @@ contract('TandaPayLedger', (accounts) => {
 
 			// current period (#2)- first 3 days (pre-period)
 			// previous period (#1) - last 3 days of active period
-			it('31: Should return correct if pre-period of a new period, but old one is still running', async() => {
+			it('Should return correct if pre-period of a new period, but old one is still running', async() => {
 				var tx = await tandaPayLedger.createNewTandaGroup(
 					secretary,
 					policyholders, 
@@ -579,7 +579,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(amountData[2].toNumber()/1e18, 12.5);
 			});
 
-			it('32: Should return correct value for 5 subgroup members and $20 premium', async() => {
+			it('Should return correct value for 5 subgroup members and $20 premium', async() => {
 				// premium should be $20 
 				// overpayment should be $5 
 				// loan repayment should be $12.5
@@ -598,7 +598,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(amountData[2].toNumber()/1e18, 12.5);
 			});
 
-			it('33: Should return correct value for 6 subgroup members and $20 premium', async() => {
+			it('Should return correct value for 6 subgroup members and $20 premium', async() => {
 				// premium should be $20 
 				// overpayment should be $4 
 				// loan repayment should be ??? 
@@ -629,7 +629,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(amountData[2].toNumber()/1e18, 12);			
 			});
 
-			it('34: Should return correct value for 7 subgroup members and $20 premium', async() => {
+			it('Should return correct value for 7 subgroup members and $20 premium', async() => {
 				// premium should be $20 
 				// overpayment should be $3.34 
 				// loan repayment should be ??? 
@@ -674,24 +674,24 @@ contract('TandaPayLedger', (accounts) => {
 				var id = await getGroupId(tx);
 			});
 
-			it('35: Should fail if groupID is wrong', async() => {
+			it('Should fail if groupID is wrong', async() => {
 				var data = await tandaPayLedger.getCurrentPeriodInfo(id+1).should.be.rejectedWith('revert');
 			});
 
-			it('36: Should return period 0, pre-period', async() => {
+			it('Should return period 0, pre-period', async() => {
 				var data = await tandaPayLedger.getCurrentPeriodInfo(id);
 				assert.equal(data[0].toNumber(), 1);
 				assert.equal(data[1].toNumber(), 0);
 			});
 
-			it('37: Should return period 0, active', async() => {
+			it('Should return period 0, active', async() => {
 				await time.increase(time.duration.days(3));
 				var data = await tandaPayLedger.getCurrentPeriodInfo(id);
 				assert.equal(data[0].toNumber(), 1);
 				assert.equal(data[1].toNumber(), 1);				
 			});
 
-			it('38: Should return (overlapping) period 0, last 3 days of active and period 1, pre-period', async() => {
+			it('Should return (overlapping) period 0, last 3 days of active and period 1, pre-period', async() => {
 				// 1 - move time 30+ days -> second period starts 
 				// 2 - call getCurrentPeriodInfo() -> should return periodIndex==1 and subperiodType==PrePeriod
 				await time.increase(time.duration.days(30));
@@ -700,7 +700,7 @@ contract('TandaPayLedger', (accounts) => {
 				assert.equal(data[1].toNumber(), 0);					
 			});
 
-			it('39: Should return (overlapping) period 0, post-peiod and period 1, active', async() => {
+			it('Should return (overlapping) period 0, post-peiod and period 1, active', async() => {
 				// 1 - move time 33+ days -> second period is in the active state
 				// 2 - call getCurrentPeriodInfo() -> should return periodIndex==1 and subperiodType==ActivePeriod
 				await time.increase(time.duration.days(33));
@@ -724,31 +724,31 @@ contract('TandaPayLedger', (accounts) => {
 				var id = await getGroupId(tx);
 			});
 
-			it('40: Should fail if groupID is wrong', async() => {
+			it('Should fail if groupID is wrong', async() => {
 				var period = 1;
 				await time.increase(time.duration.days(3));
 				var data = await tandaPayLedger.getClaimCount(id+1, period).should.be.rejectedWith('revert');
 			});
 
-			it('41: Should fail if wrong period', async() => {
+			it('Should fail if wrong period', async() => {
 				var period = 1;
 				await time.increase(time.duration.days(3));
 				var data = await tandaPayLedger.getClaimCount(id, period+1).should.be.rejectedWith('revert');
 			});
 
-			it('42: Should fail if not active period or post-period', async() => {
+			it('Should fail if not active period or post-period', async() => {
 				var period = 1;
 				var data = await tandaPayLedger.getClaimCount(id, period).should.be.rejectedWith('revert');
 			});
 
-			it('43: Should return 0 if no claims open', async() => {
+			it('Should return 0 if no claims open', async() => {
 				var period = 1;
 				await time.increase(time.duration.days(3));
 				var data = await tandaPayLedger.getClaimCount(id, period);	
 				assert.equal(data.toNumber(), 0);
 			});
 
-			it('44: Should return valid count', async() => {
+			it('Should return valid count', async() => {
 				var period = 1;
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await time.increase(time.duration.days(3));
@@ -774,7 +774,7 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 
-			it('45: Should fail if groupID is wrong', async() => {
+			it('Should fail if groupID is wrong', async() => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -784,7 +784,7 @@ contract('TandaPayLedger', (accounts) => {
 				var data = await tandaPayLedger.getClaimInfo(id+1, periodIndex, claimIndex).should.be.rejectedWith('revert');
 			});
 
-			it('46: Should fail if wrong period', async() => {
+			it('Should fail if wrong period', async() => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -794,13 +794,13 @@ contract('TandaPayLedger', (accounts) => {
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex+1, claimIndex).should.be.rejectedWith('revert');				
 			});
 
-			it('47: Should fail if not active period or post-period', async() => {
+			it('Should fail if not active period or post-period', async() => {
 				var periodIndex = 1;
 				var claimIndex = 0
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, claimIndex).should.be.rejectedWith('revert');				
 			});
 
-			it('48: Should fail if claimIndex is wrong', async() => {
+			it('Should fail if claimIndex is wrong', async() => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -810,7 +810,7 @@ contract('TandaPayLedger', (accounts) => {
 				var data = await tandaPayLedger.getClaimInfo(id, periodIndex, claimIndex+1).should.be.rejectedWith('revert');				
 			});
 
-			it('49: Should return valid data', async() => {
+			it('Should return valid data', async() => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await time.increase(time.duration.days(3));
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -825,7 +825,10 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			// New tests:
-			it('50: Should return valid claimAmountDai if claim is still not finalized', async() => {
+			it('Should return valid claimAmountDai if claim is still not finalized', async() => {
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = data[0].toNumber();
+
 				// If claim is still not finalized -> claimAmountDai = (_premiumCostDai * group count) / numberOfOpenClaims
 				// (but never more than _maxClaimDai)
 				
@@ -837,10 +840,6 @@ contract('TandaPayLedger', (accounts) => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[3]);
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[4]);
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[5]);
-
-
-				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
-				var premium = data[0].toNumber();
 
 				await time.increase(time.duration.days(3));
 
@@ -855,21 +854,24 @@ contract('TandaPayLedger', (accounts) => {
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 0);
 				assert.equal(data[0], policyholders[0]);
-				assert.equal(data[1].toNumber(), 0);
+				assert.equal(data[1].toNumber(), 1);
 				assert.equal(data[2].toNumber(), premium*6/3);
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 1);
 				assert.equal(data[0], policyholders[1]);
-				assert.equal(data[1].toNumber(), 0);
+				assert.equal(data[1].toNumber(), 1);
 				assert.equal(data[2].toNumber(), premium*6/3);
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 2);
 				assert.equal(data[0], policyholders[2]);
-				assert.equal(data[1].toNumber(), 0);
+				assert.equal(data[1].toNumber(), 1);
 				assert.equal(data[2].toNumber(), premium*6/3);											
 			});
 
-			it('51: Should return valid claimAmountDai if claim is finalized and APPROVED', async() => {
+			it('Should return valid claimAmountDai if claim is finalized and APPROVED', async() => {
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = data[0].toNumber();
+
 				// If claim is finalized and approved -> claimAmountDai (_premiumCostDai * group count) / numberOfAprovedClaims
 				// (but never more than _maxClaimDai)
 				//
@@ -882,9 +884,6 @@ contract('TandaPayLedger', (accounts) => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[3]);
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[4]);
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[5]);
-
-				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
-				var premium = data[0].toNumber();
 
 				await time.increase(time.duration.days(3));
 
@@ -899,16 +898,19 @@ contract('TandaPayLedger', (accounts) => {
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 0);
 				assert.equal(data[0], policyholders[0]);
-				assert.equal(data[1].toNumber(), 0);
+				assert.equal(data[1].toNumber(), 1);
 				assert.equal(data[2].toNumber(), (5*premium)/3);
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 1);
 				assert.equal(data[0], policyholders[1]);
-				assert.equal(data[1].toNumber(), 0);
+				assert.equal(data[1].toNumber(), 1);
 				assert.equal(data[2].toNumber(), (5*premium)/3);
 			});
 
-			it('52: Should return claimAmountDai==ZERO if claim is finalized but REJECTED', async() => {
+			it('Should return claimAmountDai==ZERO if claim is finalized but REJECTED', async() => {
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = data[0].toNumber();
+
 				// If claim is finalized and rejected -> claimAmountDai is ZERO
 				//
 				// 1 - create 3 claims 
@@ -921,9 +923,6 @@ contract('TandaPayLedger', (accounts) => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[4]);
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[5]);
 
-				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
-				var premium = data[0].toNumber();
-
 				await time.increase(time.duration.days(3));
 
 				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
@@ -931,20 +930,20 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
 				await time.increase(time.duration.days(30));
 				var period = 1;
-				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[3]}).should.be.fulfilled;
-				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[4]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, period, false, {from:policyholders[3]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, period, false, {from:policyholders[4]}).should.be.fulfilled;
 				await tandaPayLedger.finalizeClaims(id, period, false, {from:policyholders[5]}).should.be.fulfilled;
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 2);
 				assert.equal(data[0], policyholders[2]);
-				assert.equal(data[1].toNumber(), 0);
+				assert.equal(data[1].toNumber(), 3);
 				assert.equal(data[2].toNumber(), 0);				
 			});
 		});
 
 		describe('getClaimInfo2()', function () {
 			// TODO: add a lot of tests here!
-			it('53: Should ...',async() => {
+			it('Should ...',async() => {
 			});
 		});
 	});
