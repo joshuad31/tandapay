@@ -269,7 +269,7 @@ contract('TandaPayLedger', (accounts) => {
 				await time.increase(time.duration.days(30));
 				
 				var periodIndex = 2;
-				var groupData = await tandaPayLedger.getGroupInfo2(id. periodIndex).should.be.fulfilled;
+				var groupData = await tandaPayLedger.getGroupInfo2(id, periodIndex).should.be.fulfilled;
 				
 				var premiumsTotalDai = 0;
 				var overpaymentTotalDai = 0;
