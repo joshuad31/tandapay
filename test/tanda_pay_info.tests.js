@@ -49,17 +49,7 @@ contract('TandaPayLedger', (accounts) => {
 		policyholderSubgroups = getSubgroups(GROUP_SIZE_AT_CREATION_MIN);
 		monthToRepayTheLoan = MONTH_TO_REPAY_LOAN_MIN;
 		premiumCostDai = 20e18;
-		maxClaimDai = 500e18;
-
-		// var tx = await tandaPayLedger.createNewTandaGroup(
-		// 	secretary,// address _secretary,
-		// 	policyholders, // address[] _phAddresss,
-		// 	policyholderSubgroups, // uint[] _phAddressSubgroups,
-		// 	monthToRepayTheLoan, // uint _monthToRepayTheLoan, 
-		// 	premiumCostDai, // uint _premiumCostDai,
-		// 	maxClaimDai, // uint _maxClaimDai
-		// 	{from:backend}).should.be.fulfilled;
-		// id = await getGroupId(tx);		
+		maxClaimDai = 500e18;	
 	});
 
 	before(async() => {
@@ -217,7 +207,7 @@ contract('TandaPayLedger', (accounts) => {
 					maxClaimDai, 
 					{from:backend}).should.be.fulfilled;
 				var id = await getGroupId(tx);
-				
+
 				var periodIndex = 1;
 				var groupData = await tandaPayLedger.getGroupInfo2(id+1, periodIndex).should.be.rejectedWith('revert');
 			});
@@ -278,13 +268,13 @@ contract('TandaPayLedger', (accounts) => {
 				var id = await getGroupId(tx);
 				await time.increase(time.duration.days(30));
 				
-				var periodIndex = 1;
+				var periodIndex = 2;
 				var groupData = await tandaPayLedger.getGroupInfo2(id. periodIndex).should.be.fulfilled;
 				
 				var premiumsTotalDai = 0;
 				var overpaymentTotalDai = 0;
 				var loanRepaymentTotalDai = 0;
-				assert.equal(groupData[0], premiumsTotalDai);
+				assert.equal(groupData[0].toNumber(), premiumsTotalDai);
 				assert.equal(groupData[1].toNumber(), overpaymentTotalDai);
 				assert.equal(groupData[2].toNumber(), loanRepaymentTotalDai);				
 			});
@@ -952,11 +942,10 @@ contract('TandaPayLedger', (accounts) => {
 			});
 		});
 
-		/*describe('getClaimInfo2()', function () {
+		describe('getClaimInfo2()', function () {
 			// TODO: add a lot of tests here!
 			it('53: Should ...',async() => {
 			});
-		});*/
+		});
 	});
-
 })

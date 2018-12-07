@@ -516,8 +516,9 @@ contract TandaPayLedger {
 		claimant = periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress;
 		claimState = periods[_groupID][_periodIndex].claims[_claimIndex].claimState;
 		
-		uint premiumTotal = groups[_groupID].premiumsTotalDai * periods[_groupID][periodIndex].loyalists.length;
-		claimAmountDai = premiumTotal / periods[_groupID][_periodIndex].claims.length;
+		uint defected = groups[_groupID].premiumCostDai * periods[_groupID][periodIndex].defectors.length;
+		uint premiumFund = periods[_groupID][_periodIndex].premiumsTotalDai - defected;
+		claimAmountDai = premiumFund / periods[_groupID][_periodIndex].claims.length;
 	}
 
 	function getClaimInfo2(uint _groupID, uint _periodIndex) public view onlyValidGroupId(_groupID) returns(address[] loyalists, address[] defectors) {
