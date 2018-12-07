@@ -285,29 +285,24 @@ contract('TandaPayLedger', (accounts) => {
 
 		describe('removePolicyholderFromGroup()', function () {
 			it('Should not be callable by non backend account',async() => {
-				await tandaPayLedger.removePolicyholderFromGroup(id, 1, policyholders[0], {from:outsider}).should.be.rejectedWith('revert');
+				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:outsider}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if wrong GroupID',async() => {
-				await tandaPayLedger.removePolicyholderFromGroup(id+1, 1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');				
+				await tandaPayLedger.removePolicyholderFromGroup(id+1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should not be callable by non backend account',async() => {
-				await tandaPayLedger.removePolicyholderFromGroup(id, 1, policyholders[0], {from:outsider}).should.be.rejectedWith('revert');				
+				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:outsider}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should fail if policyholder is not in the current group',async() => {
-				await tandaPayLedger.removePolicyholderFromGroup(id+1, 1, getPolicyholders(1)[0], {from:backend}).should.be.rejectedWith('revert');				
-			});
-
-			it('Should fail if period!=active AND period!=pre-period',async() => {
-				await time.increase(time.duration.days((33)));
-				await tandaPayLedger.removePolicyholderFromGroup(id, 1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
+				await tandaPayLedger.removePolicyholderFromGroup(id+1, getPolicyholders(1)[0], {from:backend}).should.be.rejectedWith('revert');				
 			});
 
 			it('Should fail if premium is paid by policyholder',async() => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
-				await tandaPayLedger.removePolicyholderFromGroup(id, 1, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
+				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend}).should.be.rejectedWith('revert');
 			});
 
 			it('Should succeed if all params are OK',async() => {
@@ -318,7 +313,7 @@ contract('TandaPayLedger', (accounts) => {
 					assert.equal(info[1][i], policyholders[i]);	
 				}
 
-				await tandaPayLedger.removePolicyholderFromGroup(id, 1, policyholders[0], {from:backend}).should.be.fulfilled;
+				await tandaPayLedger.removePolicyholderFromGroup(id, policyholders[0], {from:backend}).should.be.fulfilled;
 
 				var info = await tandaPayLedger.getSubgroupInfo(id, subgroupIndex).should.be.fulfilled;
 				assert.equal(info[0].toNumber(), 4);
@@ -444,13 +439,13 @@ contract('TandaPayLedger', (accounts) => {
 			it('Should not be callable by non policyholder account',async() => {
 				var periodIndex = 1;
 				await time.increase(time.duration.days(3));		
-				await tandaPayLedger.finalizeClaims(id, periodIndex, false, {from:outsider}).should.be.rejectedWith('revert');
+				await tandaPayLedger.finalizeClaims(id, false, {from:outsider}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if wrong GroupID',async() => {
 				var periodIndex = 1;
 				await time.increase(time.duration.days(3));		
-				await tandaPayLedger.finalizeClaims(id+1, periodIndex, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
+				await tandaPayLedger.finalizeClaims(id+1, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if user has opened claim',async() => {
@@ -459,13 +454,13 @@ contract('TandaPayLedger', (accounts) => {
 				await time.increase(time.duration.days(3));
 				var claimId1 = await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
 				await time.increase(time.duration.days(3));
-				await tandaPayLedger.finalizeClaims(id, periodIndex, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
 			it('Should fail if period!=post-period',async() => {
 				var periodIndex = 1;
 				await time.increase(time.duration.days(2));
-				await tandaPayLedger.finalizeClaims(id, periodIndex, false, {from:policyholders[0]}).should.be.rejectedWith('revert');	
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');	
 			});
 
 			
@@ -473,8 +468,8 @@ contract('TandaPayLedger', (accounts) => {
 				var periodIndex = 1;
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await time.increase(time.duration.days(33));
-				await tandaPayLedger.finalizeClaims(id, periodIndex, false, {from:policyholders[0]}).should.be.fulfilled;
-				await tandaPayLedger.finalizeClaims(id, periodIndex, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[0]}).should.be.rejectedWith('revert');
 			});
 
 			it('Should auto choose <loyalist> if no answer in 3 days (when post period ended)',async() => {

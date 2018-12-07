@@ -821,7 +821,7 @@ contract('TandaPayLedger', (accounts) => {
 
 				assert.equal(data[0], policyholders[0]);
 				assert.equal(data[1].toNumber(), 0);
-				assert.equal(data[2].toNumber(), 0); // coz no finalizeClaims
+				assert.equal(data[2].toNumber(), 0);
 			});
 
 			// New tests:
@@ -848,9 +848,9 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
 				await time.increase(time.duration.days(30));
 				var period = 1;
-				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[3]}).should.be.fulfilled;
-				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[4]}).should.be.fulfilled;
-				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[5]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[3]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[4]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[5]}).should.be.fulfilled;
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 0);
 				assert.equal(data[0], policyholders[0]);
@@ -892,9 +892,9 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
 				await time.increase(time.duration.days(30));
 				var period = 1;
-				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[3]}).should.be.fulfilled;
-				await tandaPayLedger.finalizeClaims(id, period, true, {from:policyholders[4]}).should.be.fulfilled;
-				await tandaPayLedger.finalizeClaims(id, period, false, {from:policyholders[5]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[3]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[4]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[5]}).should.be.fulfilled;
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 0);
 				assert.equal(data[0], policyholders[0]);
@@ -930,9 +930,9 @@ contract('TandaPayLedger', (accounts) => {
 				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
 				await time.increase(time.duration.days(30));
 				var period = 1;
-				await tandaPayLedger.finalizeClaims(id, period, false, {from:policyholders[3]}).should.be.fulfilled;
-				await tandaPayLedger.finalizeClaims(id, period, false, {from:policyholders[4]}).should.be.fulfilled;
-				await tandaPayLedger.finalizeClaims(id, period, false, {from:policyholders[5]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[3]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[4]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[5]}).should.be.fulfilled;
 
 				var data = await tandaPayLedger.getClaimInfo(id, period, 2);
 				assert.equal(data[0], policyholders[2]);
