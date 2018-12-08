@@ -18,11 +18,11 @@ if ganachecli_running; then
   echo "Using existing ganache-cli instance"
 else
   echo "Starting ganache-cli"
-  ./node_modules/ganache-cli/build/cli.node.js --gasLimit 0xfffffffffff --port 8555 --accounts 200 --defaultBalanceEther 200\
+  ./node_modules/ganache-cli/build/cli.node.js --accounts 200 --gasLimit 0xfffffffffff --port 8555 --defaultBalanceEther 200\
   > /dev/null &
   ganachecli_pid=$!
 fi
 
-truffle migrate
+# truffle migrate
 truffle test $1
 

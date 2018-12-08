@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 /**
 * @title ITandaPayLedgerInfo 
@@ -10,6 +10,43 @@ contract ITandaPayLedgerInfo {
 	function getTandaGroupCount() public view returns(uint count);
 	function getTandaGroupID(uint _index) public view returns(uint groupID);
 	
+	event NewGroup(uint _groupId);
+	event NewClaim(uint _claimId);
+	event premiumCommited(address _premiumAddress, uint _amount);
+	event claimFinalized(uint _groupID, uint periodIndex, bool _isPolicyholderVoted, bool _isPolicyholderHaveClaim);
+
+	struct Group {
+		uint policyholdersCount;
+		address secretary;
+		uint monthToRepayTheLoan;
+		uint premiumCostDai;
+		uint maxClaimDai;
+		uint createdAt;		
+	}
+
+	struct Policyholder {
+		uint subgroup;
+		uint nextSubgroup;
+		uint nextSubgroupFromPeriod;
+		address phAddress;
+		uint lastPeriodPremium;
+	}
+
+	struct Claim {
+		address claimantAddress;
+		uint createdAt;
+		ClaimState claimState;
+	}
+
+	struct GroupPeriod {
+		Claim[] claims;
+		address[] loyalists;
+		address[] defectors;
+		uint premiumsTotalDai;
+		uint overpaymentTotalDai;
+		uint loanRepaymentTotalDai;
+	}
+
 	enum PolicyholderStatus {
 		PremiumUnpaid,
 		PremiumPaid,
@@ -22,17 +59,19 @@ contract ITandaPayLedgerInfo {
 	}
 
 	enum SubperiodType {
-		PrePeriod,		// 3 days
+		PrePeriod,	// 3 days
 		ActivePeriod,	// 30 days
-		PostPeriod		// 3 days
+		PostPeriod,	// 3 days
+		BeforePeriod,
+		OutOfPeriod
 	}
 
 	enum ClaimState {
-		Opened,			// no post-period is running currently
-		Finalizing,		// post-perdiod is currently running
+		Opened,	  // no post-period is running currently
+		Finalizing, // post-perdiod is currently running
 		Paid,
 		Rejected
-	}
+	}	
 
 // Info:
 
@@ -48,7 +87,7 @@ contract ITandaPayLedgerInfo {
 	* @dev Get the group info
 	* @param _groupID Selected group ID
 	*/
-	function getGroupInfo2(uint _groupID) public view 
+	function getGroupInfo2(uint _groupID, uint _periodIndex) public view 
 		returns(uint premiumsTotalDai, uint overpaymentTotalDai, uint loanRepaymentTotalDai); 
 
 	/**
