@@ -61,7 +61,6 @@ function isInArray(arr, o) {
 	return out;
 }
 
-
 const getGroupId = tx=> tx.logs.filter(l => l.event == 'NewGroup')[0].args._groupId.toNumber();
 const getClaimId = tx=> tx.logs.filter(l => l.event == 'NewClaim')[0].args._claimId.toNumber();
 

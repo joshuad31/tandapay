@@ -10,6 +10,43 @@ contract ITandaPayLedgerInfo {
 	function getTandaGroupCount() public view returns(uint count);
 	function getTandaGroupID(uint _index) public view returns(uint groupID);
 	
+	event NewGroup(uint _groupId);
+	event NewClaim(uint _claimId);
+	event premiumCommited(uint amountDai, uint neededAmount);
+	event claimFinalized(uint _groupID, uint periodIndex, bool _isPolicyholderVoted, bool _isPolicyholderHaveClaim);
+
+	struct Group {
+		uint policyholdersCount;
+		address secretary;
+		uint monthToRepayTheLoan;
+		uint premiumCostDai;
+		uint maxClaimDai;
+		uint createdAt;		
+	}
+
+	struct Policyholder {
+		uint subgroup;
+		uint nextSubgroup;
+		uint nextSubgroupFromPeriod;
+		address phAddress;
+		uint lastPeriodPremium;
+	}
+
+	struct Claim {
+		address claimantAddress;
+		uint createdAt;
+		ClaimState claimState;
+	}
+
+	struct GroupPeriod {
+		Claim[] claims;
+		address[] loyalists;
+		address[] defectors;
+		uint premiumsTotalDai;
+		uint overpaymentTotalDai;
+		uint loanRepaymentTotalDai;
+	}
+
 	enum PolicyholderStatus {
 		PremiumUnpaid,
 		PremiumPaid,
@@ -34,7 +71,7 @@ contract ITandaPayLedgerInfo {
 		Finalizing, // post-perdiod is currently running
 		Paid,
 		Rejected
-	}
+	}	
 
 // Info:
 

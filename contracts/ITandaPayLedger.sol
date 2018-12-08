@@ -5,24 +5,16 @@ pragma solidity ^0.4.24;
 * @dev Main TandaPayLedger interface
 */
 contract ITandaPayLedger {
-	modifier onlyByBackend() {
-		// TODO:
-		_; 
-	}
-
-	modifier onlyByPolicyholder(uint groupID){
-		// TODO:
-		_;
-	}
-
 	uint public GROUP_SIZE_AT_CREATION_MIN = 50;
 	uint public GROUP_SIZE_AT_CREATION_MAX = 55;
 	uint public MONTH_TO_REPAY_LOAN_MIN = 3;
 	uint public MONTH_TO_REPAY_LOAN_MAX = 255;
 
+	uint public MAX_SUBGROUP_MEMBERS_COUNT = 7;
+
 // Backend:
-	function transferBackendAccount(address _newAccount) public onlyByBackend;
-	function transferCronAccount(address _newAccount) public onlyByBackend;
+	function transferBackendAccount(address _newAccount) public;
+	function transferCronAccount(address _newAccount) public;
 
 	/**
 	* @dev Create new Group and start the first period automatically.
@@ -43,7 +35,7 @@ contract ITandaPayLedger {
 		uint[] _policyholderSubgroups,
 		uint _monthToRepayTheLoan, 
 		uint _premiumCostDai,
-		uint _maxClaimDai) public onlyByBackend returns(uint groupID);
+		uint _maxClaimDai) public;
 
 	/**
 	* @dev Add new claim. The claim amount will be automatically calculated.
@@ -58,7 +50,7 @@ contract ITandaPayLedger {
 	*/
 	function addClaim(
 		uint _groupID, 
-		address _claimantAddress) public onlyByBackend returns(uint claimIndex);
+		address _claimantAddress) public;
 	
 	/**
 	* @dev Remove policyholder from the group
@@ -71,7 +63,7 @@ contract ITandaPayLedger {
 	*/
 	function removePolicyholderFromGroup(
 		uint _groupID,
-		address _policyholder) public onlyByBackend;
+		address _policyholder) public;
 
 // Policyholder:
 	/**
@@ -88,7 +80,7 @@ contract ITandaPayLedger {
 	*/
 	function commitPremium(
 		uint _groupID, 
-		uint _amountDai) public onlyByPolicyholder(_groupID);
+		uint _amountDai) public;
 
 	/**
 	* @dev If policyholder wants to change the group -> should call this.
@@ -103,7 +95,7 @@ contract ITandaPayLedger {
 	*/
 	function addChangeSubgroupRequest(
 		uint _groupID, 
-		uint _newSubgroupID) public onlyByPolicyholder(_groupID);
+		uint _newSubgroupID) public;
 
 	/**
 	* @dev Finalize all opened claims by selecting either Loyalist or Defector option.
@@ -118,7 +110,7 @@ contract ITandaPayLedger {
 	*/
 	function finalizeClaims(
 		uint _groupID, 
-		bool _loyalist) public onlyByPolicyholder(_groupID);
+		bool _loyalist) public;
 
 	/**
 	* @dev Change the current group state (move periods, do payments, change subgroups, etc)
