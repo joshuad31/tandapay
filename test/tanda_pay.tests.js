@@ -361,7 +361,12 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if send LESS',async() => {	
-				var amountToPay = await tandaPayLedger.getNeededAmount(id, policyholders[0]);
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = new web3.BigNumber(data[0]);
+				var overpaymentDai = new web3.BigNumber(data[1]);
+				var loanRepaymentDai = new web3.BigNumber(data[1]);
+				var amountToPay = premium.add(overpaymentDai).add(loanRepaymentDai);
+
 				await daiContract.mint(policyholders[0], amountToPay.toNumber(), {from:backend}).should.be.fulfilled;
 				await daiContract.approve(tandaPayLedger.address, amountToPay.toNumber(), {from:policyholders[0]}).should.be.fulfilled;
 				var bn = new web3.BigNumber(amountToPay).sub(1);
@@ -369,7 +374,12 @@ contract('TandaPayLedger', (accounts) => {
 			});
 
 			it('Should fail if send MORE',async() => {	
-				var amountToPay = await tandaPayLedger.getNeededAmount(id, policyholders[0]);
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = new web3.BigNumber(data[0]);
+				var overpaymentDai = new web3.BigNumber(data[1]);
+				var loanRepaymentDai = new web3.BigNumber(data[1]);
+				var amountToPay = premium.add(overpaymentDai).add(loanRepaymentDai);
+
 				await daiContract.mint(policyholders[0], amountToPay.toNumber(), {from:backend}).should.be.fulfilled;
 				await daiContract.approve(tandaPayLedger.address, amountToPay.toNumber(), {from:policyholders[0]}).should.be.fulfilled;
 				var bn = new web3.BigNumber(amountToPay).add(1);

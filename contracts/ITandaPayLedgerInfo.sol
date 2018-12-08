@@ -12,7 +12,7 @@ contract ITandaPayLedgerInfo {
 	
 	event NewGroup(uint _groupId);
 	event NewClaim(uint _claimId);
-	event premiumCommited(uint amountDai, uint neededAmount);
+	event premiumCommited(address _premiumAddress, uint _amount);
 	event claimFinalized(uint _groupID, uint periodIndex, bool _isPolicyholderVoted, bool _isPolicyholderHaveClaim);
 
 	struct Group {

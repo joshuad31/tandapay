@@ -44,8 +44,13 @@ function getPolicyholders(count) {
 	return arr;
 }
 
+
 async function payPremium(daiContract, tandaPayLedger, backend, id, pc) {
-	var amountToPay = await tandaPayLedger.getNeededAmount(id, pc);
+	var data = await tandaPayLedger.getAmountToPay(id, pc);
+	var premium = new web3.BigNumber(data[0]);
+	var overpaymentDai = new web3.BigNumber(data[1]);
+	var loanRepaymentDai = new web3.BigNumber(data[2]);
+	var amountToPay = premium.add(overpaymentDai).add(loanRepaymentDai);
 	await daiContract.mint(pc, amountToPay, {from:backend}).should.be.fulfilled;
 	await daiContract.approve(tandaPayLedger.address, amountToPay, {from:pc}).should.be.fulfilled;
 	await tandaPayLedger.commitPremium(id, amountToPay, {from:pc}).should.be.fulfilled;
