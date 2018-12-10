@@ -936,6 +936,19 @@ contract('TandaPayLedger', (accounts) => {
 		});
 
 		describe('getClaimInfo2()', function () {
+			beforeEach(async() => {
+				var tx = await tandaPayLedger.
+					createNewTandaGroup(
+						secretary,
+						policyholders, 
+						policyholderSubgroups, 
+						monthToRepayTheLoan, 
+						premiumCostDai, 
+						maxClaimDai, 
+						{from:backend}).should.be.fulfilled;
+				var id = await getGroupId(tx);
+			});
+
 			it('Should return 2 defectors and 1 loyalist',async() => {
 				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
 				var premium = data[0].toNumber();
@@ -1067,4 +1080,4 @@ contract('TandaPayLedger', (accounts) => {
 			});			
 		});
 	});
-})
+});
