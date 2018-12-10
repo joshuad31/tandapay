@@ -430,13 +430,14 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	}
 
 	function _sendClaim(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) {
-		Claim memory c = periods[_groupID][_periodIndex].claims[_claimIndex];
-		uint amount = _getClaimAmount(_groupID, _periodIndex, _claimIndex);
-		require(amount > 0);
 		require(_getClaimState(_groupID, _periodIndex, _claimIndex) == ClaimState.Finalizing);
 
-		daiContract.approve(c.claimantAddress, amount);
-		periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Paid;
+		if(_getClaimAmount(_groupID, _periodIndex, _claimIndex)==0) {
+			periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Rejected;			
+		} else {
+			daiContract.transfer(periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress, _getClaimAmount(_groupID, _periodIndex, _claimIndex));
+			periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Paid;			
+		}
 	}
 
 	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) view returns(bool isIt) {
@@ -459,7 +460,8 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function _getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
 		ClaimState cs = _getClaimState(_groupID, _periodIndex, _claimIndex);
-		if((cs!=ClaimState.Finalizing)&&(cs!=ClaimState.Paid)) {
+		if(((cs!=ClaimState.Finalizing)&&(cs!=ClaimState.Paid)) ||
+		   _isClaimRejected(_groupID, _periodIndex, _claimIndex)) {
 			return 0;
 		}
 
