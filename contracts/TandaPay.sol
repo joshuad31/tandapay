@@ -494,5 +494,5 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 		loyalists = periods[_groupID][_periodIndex].loyalists;
 		defectors = periods[_groupID][_periodIndex].defectors;
-	}	
+	}
 }
