@@ -200,20 +200,102 @@ contract('TandaPayLedger|Functional', (accounts) => {
 			var balArr = [3*8*premium];
 			var pcToBalCheck = [pc[0]];
 			await checkBalancesForThem(daiContract, pcToBalCheck, balArr);
-		});		
+		});
+	
+		it('Should return correct values: 1 period, 8 policyholders, claims: not rejected but 0 amount',async() => {
+			daiContract = await DaiContract.new();
+			tandaPayLedger = await TandaPayLedger.new(daiContract.address, backend, cronAccount);		
+			
+				var policyholderSubgroupsModified = [ 
+					7, 0, 0, 0, 1, 1, 1, 1,
+					0, 0, 0, 1, 1, 1,
+					2, 2, 2, 2, 2, 2,
+					3, 3, 3, 3, 3, 3,
+					4, 4, 4, 4, 4, 4,
+					5, 5, 5, 5, 5, 5,
+					6, 6, 6, 6, 6, 6,
+					7, 7, 7, 7, 7, 7
+				]
+
+			var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					pc, 
+					policyholderSubgroupsModified, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDai, 
+					{from:backend}).should.be.fulfilled;
+			var id = await getGroupId(tx);
+
+			var data = await tandaPayLedger.getAmountToPay(id, pc[0]);
+			var premium = data[0].toNumber();
+			var pcPremium = [pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]];
+
+		// 0 DAY
+				// 1 period PHASE A
+			await payPremiumsForThem(daiContract, tandaPayLedger, backend, id, pcPremium);
+		await time.increase(time.duration.days(3)); // 3 DAY
+				// 1 period PHASE B
+			await addClaimsForThem(tandaPayLedger, backend, id, [pc[0]]); 
+		await time.increase(time.duration.days(27)); // 30 DAY
+		await time.increase(time.duration.days(3)); // 33 DAY
+				// 1 period PHASE C
+			await finalizeClaimsForThem(tandaPayLedger, backend, id, 
+				[pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]],
+				[false, false, false, false, false, false, false]);
+			await tandaPayLedger.processGroup(id, {from:cronAccount});
+			var balArr = [premium, 0, 0, 0, 0, 0, 0, 0];
+			var pcToBalCheck = [pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]];
+			await checkBalancesForThem(daiContract, pcToBalCheck, balArr);					
+		});
+
+		/*it('Should return correct values: 1 period, 8 policyholders, maxClaimDai overfill',async() => {
+			daiContract = await DaiContract.new();
+			tandaPayLedger = await TandaPayLedger.new(daiContract.address, backend, cronAccount);		
+			
+				var policyholderSubgroupsModified = [ 
+					0, 0, 0, 0, 1, 1, 1, 1,
+					0, 0, 0, 1, 1, 1,
+					2, 2, 2, 2, 2, 2,
+					3, 3, 3, 3, 3, 3,
+					4, 4, 4, 4, 4, 4,
+					5, 5, 5, 5, 5, 5,
+					6, 6, 6, 6, 6, 6,
+					7, 7, 7, 7, 7, 7
+				]				
+
+			var maxClaimDaiModified = 3*premiumCostDai;
+			var tx = await tandaPayLedger.createNewTandaGroup(
+					secretary,
+					pc, 
+					policyholderSubgroupsModified, 
+					monthToRepayTheLoan, 
+					premiumCostDai, 
+					maxClaimDaiModified, 
+					{from:backend}).should.be.fulfilled;
+			var id = await getGroupId(tx);
+
+			var data = await tandaPayLedger.getAmountToPay(id, pc[0]);
+			var premium = data[0].toNumber();
+			var pcPremium = [pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]];
+
+		// 0 DAY
+				// 1 period PHASE A
+			await payPremiumsForThem(daiContract, tandaPayLedger, backend, id, pcPremium);
+		await time.increase(time.duration.days(3)); // 3 DAY
+				// 1 period PHASE B
+			await addClaimsForThem(tandaPayLedger, backend, id, [pc[0]]); 
+		await time.increase(time.duration.days(27)); // 30 DAY
+		await time.increase(time.duration.days(3)); // 33 DAY
+				// 1 period PHASE C
+			await finalizeClaimsForThem(tandaPayLedger, backend, id, 
+				[pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]],
+				[true,  true,  true,  true,  true,  true,  true]);
+			await tandaPayLedger.processGroup(id, {from:cronAccount});
+			var balArr = [3*premiumCostDai, 0, 0, 0, 0, 0, 0, 0];
+			var pcToBalCheck = [pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]];
+			await checkBalancesForThem(daiContract, pcToBalCheck, balArr);					
+		});*/
+
 	});
-
-	/* 
-		8 голосующих в группе
-		три периода: в каждом все принимают заявку одного, каждый раз разного
-		после последнего периода проверить, что дальше ничего не работает
-	*/
-
-	/* 
-		8 голосующих в группе
-		три периода: в каждом все принимают заявку одного, каждый раз разного
-		при этом крон не отрабатывает. Что в конце?
-	*/
-
-	// maxClaimDai overfill – check it
 });
