@@ -424,18 +424,20 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		// Send all claimRewards to claimants
 		for(uint claimIndex=0; claimIndex<periods[_groupID][periodIndex].claims.length; claimIndex++) {
 			if(_getClaimState(_groupID, periodIndex, claimIndex) == ClaimState.Finalizing) {
-				_sendClaim(_groupID, periodIndex, claimIndex);
+				_processClaim(_groupID, periodIndex, claimIndex);
 			}
 		}
 	}
 
-	function _sendClaim(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) {
+	function _processClaim(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) {
 		require(_getClaimState(_groupID, _periodIndex, _claimIndex) == ClaimState.Finalizing);
 
-		if(_getClaimAmount(_groupID, _periodIndex, _claimIndex)==0) {
-			periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Rejected;			
+		if(_isClaimRejected(_groupID, _periodIndex, _claimIndex)) {
+			periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Rejected;
 		} else {
-			daiContract.transfer(periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress, _getClaimAmount(_groupID, _periodIndex, _claimIndex));
+			if(_getClaimAmount(_groupID, _periodIndex, _claimIndex) > 0) {
+				daiContract.transfer(periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress, _getClaimAmount(_groupID, _periodIndex, _claimIndex));		
+			}		
 			periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Paid;			
 		}
 	}
@@ -460,7 +462,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function _getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
 		ClaimState cs = _getClaimState(_groupID, _periodIndex, _claimIndex);
-		if(((cs!=ClaimState.Finalizing)&&(cs!=ClaimState.Paid)) ||
+		if(((cs != ClaimState.Finalizing) && (cs != ClaimState.Paid)) ||
 		   _isClaimRejected(_groupID, _periodIndex, _claimIndex)) {
 			return 0;
 		}
