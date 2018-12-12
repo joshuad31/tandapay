@@ -37,19 +37,14 @@ contract('TandaPayLedger', (accounts) => {
 	policyholders[3] = accounts[7];
 	policyholders[4] = accounts[8];
 	policyholders[5] = accounts[3];	
-	var policyholderSubgroups;
-	var monthToRepayTheLoan;
-	var premiumCostDai;
-	var maxClaimDai;
+	var policyholderSubgroups = getSubgroups(GROUP_SIZE_AT_CREATION_MIN);
+	var monthToRepayTheLoan = MONTH_TO_REPAY_LOAN_MIN;
+	var premiumCostDai = 20e18;
+	var maxClaimDai = 500e18;
 	
 	beforeEach(async() => {
 		daiContract = await DaiContract.new();
-		tandaPayLedger = await TandaPayLedger.new(daiContract.address, backend, cronAccount);
-		
-		policyholderSubgroups = getSubgroups(GROUP_SIZE_AT_CREATION_MIN);
-		monthToRepayTheLoan = MONTH_TO_REPAY_LOAN_MIN;
-		premiumCostDai = 20e18;
-		maxClaimDai = 500e18;	
+		tandaPayLedger = await TandaPayLedger.new(daiContract.address, backend, cronAccount);		
 	});
 
 	before(async() => {
@@ -773,7 +768,6 @@ contract('TandaPayLedger', (accounts) => {
 				var id = await getGroupId(tx);
 			});
 
-
 			it('Should fail if groupID is wrong', async() => {
 				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
 				await time.increase(time.duration.days(3));
@@ -937,14 +931,153 @@ contract('TandaPayLedger', (accounts) => {
 				var data = await tandaPayLedger.getClaimInfo(id, period, 2);
 				assert.equal(data[0], policyholders[2]);
 				assert.equal(data[1].toNumber(), 3);
-				assert.equal(data[2].toNumber(), 0);				
+				assert.equal(data[2].toNumber(), 0);
 			});
 		});
 
 		describe('getClaimInfo2()', function () {
-			// TODO: add a lot of tests here!
-			it('Should ...',async() => {
+			beforeEach(async() => {
+				var tx = await tandaPayLedger.
+					createNewTandaGroup(
+						secretary,
+						policyholders, 
+						policyholderSubgroups, 
+						monthToRepayTheLoan, 
+						premiumCostDai, 
+						maxClaimDai, 
+						{from:backend}).should.be.fulfilled;
+				var id = await getGroupId(tx);
+			});
+
+			it('Should return 2 defectors and 1 loyalist',async() => {
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = data[0].toNumber();
+				// 1 - create 3 claims 
+				// 2 - approve 2 of them
+				// 3 - check the loyalists and defectors count
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[1]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[2]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[3]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[4]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[5]);
+
+				await time.increase(time.duration.days(3));
+
+				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
+				await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
+				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
+				await time.increase(time.duration.days(30));
+				var period = 1;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[3]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[4]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[5]}).should.be.fulfilled;
+
+				var data = await tandaPayLedger.getClaimInfo2(id, period);
+				assert.equal(data[0].length, 1);
+				assert.equal(data[1].length, 2);
+
+				assert.equal(data[0][0], policyholders[3]);
+				assert.equal(data[1][0], policyholders[4]);
+				assert.equal(data[1][1], policyholders[5]);
 			});
 		});
+
+		describe('processGroup()', function () {
+			beforeEach(async() => {
+				var tx = await tandaPayLedger.
+					createNewTandaGroup(
+						secretary,
+						policyholders, 
+						policyholderSubgroups, 
+						monthToRepayTheLoan, 
+						premiumCostDai, 
+						maxClaimDai, 
+						{from:backend}).should.be.fulfilled;
+				var id = await getGroupId(tx);
+			});
+
+			it('Should transfer tokens for claimnants successfully',async() => {
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = data[0].toNumber();
+				// 1 - create 3 claims 
+				// 2 - approve 2 of them
+				// 3 - check the loyalists and defectors count
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[1]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[2]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[3]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[4]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[5]);
+
+				await time.increase(time.duration.days(3));
+
+				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
+				await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
+				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
+				await time.increase(time.duration.days(30));
+				var period = 1;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[3]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, true, {from:policyholders[4]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[5]}).should.be.fulfilled;
+
+				var balance0 = await daiContract.balanceOf(policyholders[0]);
+				var balance1 = await daiContract.balanceOf(policyholders[1]);
+				var balance2 = await daiContract.balanceOf(policyholders[2]);
+				assert.equal(balance0.toNumber(), 0);
+				assert.equal(balance1.toNumber(), 0);
+				assert.equal(balance2.toNumber(), 0);
+
+				await tandaPayLedger.processGroup(id, {from:cronAccount});
+
+				var balance0 = await daiContract.balanceOf(policyholders[0]);
+				var balance1 = await daiContract.balanceOf(policyholders[1]);
+				var balance2 = await daiContract.balanceOf(policyholders[2]);
+				assert.equal(balance0.toNumber(), 5*premium/3);
+				assert.equal(balance1.toNumber(), 5*premium/3);
+				assert.equal(balance2.toNumber(), 5*premium/3);
+			});
+
+			it('Should not transfer tokens if all voters==defectors',async() => {
+				var data = await tandaPayLedger.getAmountToPay(id, policyholders[0]);
+				var premium = data[0].toNumber();
+				// 1 - create 3 claims 
+				// 2 - approve 2 of them
+				// 3 - check the loyalists and defectors count
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[0]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[1]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[2]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[3]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[4]);
+				await payPremium(daiContract, tandaPayLedger, backend, id, policyholders[5]);
+
+				await time.increase(time.duration.days(3));
+
+				await tandaPayLedger.addClaim(id, policyholders[0], {from:backend}).should.be.fulfilled;
+				await tandaPayLedger.addClaim(id, policyholders[1], {from:backend}).should.be.fulfilled;
+				await tandaPayLedger.addClaim(id, policyholders[2], {from:backend}).should.be.fulfilled;
+				await time.increase(time.duration.days(30));
+				var period = 1;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[3]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[4]}).should.be.fulfilled;
+				await tandaPayLedger.finalizeClaims(id, false, {from:policyholders[5]}).should.be.fulfilled;
+
+				var balance0 = await daiContract.balanceOf(policyholders[0]);
+				var balance1 = await daiContract.balanceOf(policyholders[1]);
+				var balance2 = await daiContract.balanceOf(policyholders[2]);
+				assert.equal(balance0.toNumber(), 0);
+				assert.equal(balance1.toNumber(), 0);
+				assert.equal(balance2.toNumber(), 0);
+
+				await tandaPayLedger.processGroup(id, {from:cronAccount});
+
+				var balance0 = await daiContract.balanceOf(policyholders[0]);
+				var balance1 = await daiContract.balanceOf(policyholders[1]);
+				var balance2 = await daiContract.balanceOf(policyholders[2]);
+				assert.equal(balance0.toNumber(), 0);
+				assert.equal(balance1.toNumber(), 0);
+				assert.equal(balance2.toNumber(), 0);
+			});			
+		});
 	});
-})
+});
