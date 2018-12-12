@@ -51,9 +51,9 @@ async function payPremium(daiContract, tandaPayLedger, backend, id, pc) {
 	var overpaymentDai = new web3.BigNumber(data[1]);
 	var loanRepaymentDai = new web3.BigNumber(data[2]);
 	var amountToPay = premium.add(overpaymentDai).add(loanRepaymentDai);
-	await daiContract.mint(pc, amountToPay, {from:backend}).should.be.fulfilled;
-	await daiContract.approve(tandaPayLedger.address, amountToPay, {from:pc}).should.be.fulfilled;
-	await tandaPayLedger.commitPremium(id, amountToPay, {from:pc}).should.be.fulfilled;
+	await daiContract.mint(pc, amountToPay, {from:backend});
+	await daiContract.approve(tandaPayLedger.address, amountToPay, {from:pc});
+	await tandaPayLedger.commitPremium(id, amountToPay, {from:pc});
 }
 
 function isInArray(arr, o) {
@@ -66,6 +66,54 @@ function isInArray(arr, o) {
 	return out;
 }
 
+async function payPremiumsForThem(daiContract, tandaPayLedger, backend, id, pcArr) {
+	var data;
+	var premium;
+	for(var i=0; i<pcArr.length; i++) {
+		// console.log('------------------', i);
+		// var PremiumToPay =  (await tandaPayLedger.getPremium(id,pcArr[i])).toNumber();
+		// console.log('Premium:', PremiumToPay);
+		// var LoanRepaymentToPay =  (await tandaPayLedger.getLoanRepayment(id,pcArr[i])).toNumber();
+		// console.log('LoanRepayment:', LoanRepaymentToPay);
+		// var OverpaymentToPay =  (await tandaPayLedger.getOverpayment(id,pcArr[i])).toNumber();	
+		// console.log('Overpayment:', OverpaymentToPay);		
+
+
+
+		// var PremiumToPay =  (await tandaPayLedger.getPremiumToPay(id,pcArr[i])).toNumber();
+		// console.log('PremiumToPay:', PremiumToPay);
+		// var LoanRepaymentToPay =  (await tandaPayLedger.getLoanRepaymentToPay(id,pcArr[i])).toNumber();
+		// console.log('LoanRepaymentToPay:', LoanRepaymentToPay);
+		// var OverpaymentToPay =  (await tandaPayLedger.getOverpaymentToPay(id,pcArr[i])).toNumber();	
+		// console.log('OverpaymentToPay:', OverpaymentToPay);		
+
+		data = await tandaPayLedger.getAmountToPay(id,pcArr[i]);
+		premium = data[0].toNumber();
+
+		await payPremium(daiContract, tandaPayLedger, backend, id, pcArr[i]);
+	}
+}
+
+async function addClaimsForThem(tandaPayLedger, backend, id, pcArr) {
+	for(var i=0; i<pcArr.length; i++) {
+		await tandaPayLedger.addClaim(id, pcArr[i], {from:backend});
+	}
+}
+
+async function finalizeClaimsForThem(tandaPayLedger, backend, id, pcArr, ansArr) {
+	for(var i=0; i<pcArr.length; i++) {
+		await tandaPayLedger.finalizeClaims(id, ansArr[i], {from:pcArr[i]});
+	}
+}
+
+async function checkBalancesForThem(daiContract, pcArr, balArr) {
+	for(var i=0; i<pcArr.length; i++) {
+		var balance = await daiContract.balanceOf(pcArr[i]);
+		// console.log('checkBalancesForThem:', balance.toNumber(), balArr[i], 'should be:', balance.toNumber());
+		assert.equal(balance.toNumber(), balArr[i]);
+	}
+}
+
 const getGroupId = tx=> tx.logs.filter(l => l.event == 'NewGroup')[0].args._groupId.toNumber();
 const getClaimId = tx=> tx.logs.filter(l => l.event == 'NewClaim')[0].args._claimId.toNumber();
 
@@ -75,3 +123,7 @@ module.exports.payPremium = payPremium;
 module.exports.getGroupId = getGroupId;
 module.exports.getClaimId = getClaimId;
 module.exports.isInArray = isInArray;
+module.exports.payPremiumsForThem = payPremiumsForThem;
+module.exports.addClaimsForThem = addClaimsForThem;
+module.exports.finalizeClaimsForThem = finalizeClaimsForThem;
+module.exports.checkBalancesForThem = checkBalancesForThem;

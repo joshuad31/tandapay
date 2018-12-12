@@ -109,15 +109,15 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		for(uint i=0; i<_phAddresss.length; i++) {
 			Policyholder memory p = Policyholder(
 				_phAddressSubgroups[i], 	// subgroup;
-				_phAddressSubgroups[i], 	// nextSubgroup;
-				1,                       // nextSubgroupFromPeriod
+				_phAddressSubgroups[i], 	// bufferedSubgroup;
+				1,                       // bufferedSubgroupFromPeriod
 				_phAddresss[i], 		// phAddress;
 				0 					// lastPeriodPremium;
 			);
 
 			policyholders[groupsCount][i] = p;
 			g.policyholdersCount++;
-		}	
+		}
 		groups[groupsCount] = g;
 		emit NewGroup(groupsCount);
 		groupsCount = groupsCount + 1;
@@ -262,6 +262,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function commitPremium(uint _groupID, uint _amountDai) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PrePeriod) {
 		require(_amountDai==(_getPremiumToPay(_groupID, msg.sender) + _getOverpaymentToPay(_groupID, msg.sender) +_getLoanRepaymentToPay(_groupID, msg.sender)));
+		require(_getPeriodNumber(_groupID)<=groups[_groupID].monthToRepayTheLoan);
 		emit premiumCommited(msg.sender, _amountDai);
 		daiContract.transferFrom(msg.sender, address(this), _amountDai);
 
@@ -277,12 +278,12 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	function addChangeSubgroupRequest(uint _groupID, uint _newSubgroupID) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.ActivePeriod) {
 		uint periodIndex = _getPeriodNumber(_groupID);
 		require(!_isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
-		require(policyholders[_groupID][phIndex].nextSubgroupFromPeriod != periodIndex + 1);
+		require(policyholders[_groupID][phIndex].bufferedSubgroupFromPeriod != periodIndex + 1);
 
 		uint phIndex = _getPolicyHolderNumber(_groupID, msg.sender);
-		policyholders[_groupID][phIndex].subgroup = policyholders[_groupID][phIndex].nextSubgroup;
-		policyholders[_groupID][phIndex].nextSubgroup = _newSubgroupID;
-		policyholders[_groupID][phIndex].nextSubgroupFromPeriod = periodIndex+1;
+		policyholders[_groupID][phIndex].subgroup = policyholders[_groupID][phIndex].bufferedSubgroup;
+		policyholders[_groupID][phIndex].bufferedSubgroup = _newSubgroupID;
+		policyholders[_groupID][phIndex].bufferedSubgroupFromPeriod = periodIndex+1;
 	}
 
 	function finalizeClaims(uint _groupID, bool _loyalist) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PostPeriod) {
@@ -372,8 +373,8 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function _getCurrentSubgroup(uint _groupID, Policyholder _p) internal view onlyValidGroupId(_groupID) returns(uint) {
 		uint period = _getPeriodNumber(_groupID);
-		if(_p.nextSubgroupFromPeriod<=period) {
-			return _p.nextSubgroup;
+		if(_p.bufferedSubgroupFromPeriod<=period) {
+			return _p.bufferedSubgroup;
 		} else {
 			return _p.subgroup;
 		}
@@ -393,9 +394,9 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		return(phCount, phArr);
 	}
 
-	function getPolicyholderInfo(uint _groupID, address _phAddress) public view onlyValidGroupId(_groupID) returns(uint currentSubgroupIndex, uint nextSubgroupIndex, PolicyholderStatus status) {
+	function getPolicyholderInfo(uint _groupID, address _phAddress) public view onlyValidGroupId(_groupID) returns(uint currentSubgroupIndex, uint bufferedSubgroupIndex, PolicyholderStatus status) {
 		currentSubgroupIndex = _getCurrentSubgroup(_groupID, _getPolicyHolder(_groupID, _phAddress));
-		nextSubgroupIndex = _getPolicyHolder(_groupID, _phAddress).nextSubgroup;
+		bufferedSubgroupIndex = _getPolicyHolder(_groupID, _phAddress).bufferedSubgroup;
 		status = _getPolicyHolderStatus(_groupID, _phAddress);
 	}
 
@@ -465,9 +466,16 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 			return 0;
 		}
 
+		uint nonRejectedClaimsCount = 0;
+		for(uint i=0; i<periods[_groupID][_periodIndex].claims.length; i++) {
+			if(!_isClaimRejected(_groupID, _periodIndex, i)) {
+				nonRejectedClaimsCount++;
+			}
+		}
+
 		uint defected = groups[_groupID].premiumCostDai * periods[_groupID][_periodIndex].defectors.length;
 		uint premiumFund = periods[_groupID][_periodIndex].premiumsTotalDai - defected;
-		return premiumFund / periods[_groupID][_periodIndex].claims.length;
+		return premiumFund / nonRejectedClaimsCount;
 	}
 
 	function _getClaimState(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) view returns(ClaimState) {
