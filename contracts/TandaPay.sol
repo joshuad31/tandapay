@@ -51,7 +51,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	modifier correctParams(uint _groupID, uint _periodIndex, uint _claimIndex) {
+	modifier isCorrectParams(uint _groupID, uint _periodIndex, uint _claimIndex) {
 		require(_claimIndex < periods[_groupID][_periodIndex].claims.length);
 		require(_periodIndex <= _getPeriodNumber(_groupID));
 		require(_groupID < groupsCount);
@@ -425,23 +425,25 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		// Send all claimRewards to claimants
 		for(uint claimIndex=0; claimIndex<periods[_groupID][periodIndex].claims.length; claimIndex++) {
 			if(_getClaimState(_groupID, periodIndex, claimIndex) == ClaimState.Finalizing) {
-				_sendClaim(_groupID, periodIndex, claimIndex);
+				_processClaim(_groupID, periodIndex, claimIndex);
 			}
 		}
 	}
 
-	function _sendClaim(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) {
+	function _processClaim(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) {
 		require(_getClaimState(_groupID, _periodIndex, _claimIndex) == ClaimState.Finalizing);
 
-		if(_getClaimAmount(_groupID, _periodIndex, _claimIndex)==0) {
-			periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Rejected;			
+		if(_isClaimRejected(_groupID, _periodIndex, _claimIndex)) {
+			periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Rejected;
 		} else {
-			daiContract.transfer(periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress, _getClaimAmount(_groupID, _periodIndex, _claimIndex));
+			if(_getClaimAmount(_groupID, _periodIndex, _claimIndex) > 0) {
+				daiContract.transfer(periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress, _getClaimAmount(_groupID, _periodIndex, _claimIndex));		
+			}		
 			periods[_groupID][_periodIndex].claims[_claimIndex].claimState = ClaimState.Paid;			
 		}
 	}
 
-	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) view returns(bool isIt) {
+	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(bool isIt) {
 		address[] defectors = periods[_groupID][_periodIndex].defectors;
 		Claim memory claim = periods[_groupID][_periodIndex].claims[_claimIndex];
 		Policyholder memory pcClaimant = _getPolicyHolder(_groupID, claim.claimantAddress);
@@ -459,9 +461,9 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}	
 
-	function _getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
+	function _getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
 		ClaimState cs = _getClaimState(_groupID, _periodIndex, _claimIndex);
-		if(((cs!=ClaimState.Finalizing)&&(cs!=ClaimState.Paid)) ||
+		if(((cs != ClaimState.Finalizing) && (cs != ClaimState.Paid)) ||
 		   _isClaimRejected(_groupID, _periodIndex, _claimIndex)) {
 			return 0;
 		}
@@ -478,7 +480,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		return premiumFund / nonRejectedClaimsCount;
 	}
 
-	function _getClaimState(uint _groupID, uint _periodIndex, uint _claimIndex) internal correctParams(_groupID, _periodIndex, _claimIndex) view returns(ClaimState) {
+	function _getClaimState(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(ClaimState) {
 		if(ClaimState.Paid == periods[_groupID][_periodIndex].claims[_claimIndex].claimState) {
 			return ClaimState.Paid;
 		} else if(_isClaimRejected(_groupID, _periodIndex, _claimIndex)) {
@@ -492,7 +494,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}	
 
-	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view correctParams(_groupID, _periodIndex, _claimIndex) returns(address claimant, ClaimState claimState, uint claimAmountDai) {
+	function getClaimInfo(uint _groupID, uint _periodIndex, uint _claimIndex) public view isCorrectParams(_groupID, _periodIndex, _claimIndex) returns(address claimant, ClaimState claimState, uint claimAmountDai) {
 		claimant = periods[_groupID][_periodIndex].claims[_claimIndex].claimantAddress;
 		claimState = _getClaimState(_groupID, _periodIndex, _claimIndex);
 		claimAmountDai = _getClaimAmount(_groupID, _periodIndex, _claimIndex);
