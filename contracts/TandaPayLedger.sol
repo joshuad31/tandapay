@@ -227,9 +227,8 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	function	_isPolicyholderPremium(uint _groupID, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool) {
-		uint last = _getPolicyHolder(_groupID, _phAddress).lastPeriodPremium;
-		return (last == _getPeriodNumber(_groupID));
+	function	_isPolicyholderPremium(uint _groupID, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool isPremium) {
+		isPremium = (_getPeriodNumber(_groupID) == _getPolicyHolder(_groupID, _phAddress).lastPeriodPremium);	
 	}
 
 	function _getPolicyHolderStatus(uint _groupID, address _phAddress) internal view onlyValidGroupId(_groupID) returns(PolicyholderStatus) {
@@ -303,24 +302,24 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	function _isPolicyholderVoted(uint _groupID, uint _periodIndex, address _phAddress)	internal view onlyValidGroupId(_groupID) returns(bool isPolicyholderVoted) {
+	function _isPolicyholderVoted(uint _groupID, uint _periodIndex, address _phAddress)	internal view onlyValidGroupId(_groupID) returns(bool isVoted) {
 		for(uint i=0; i<periods[_groupID][_periodIndex].loyalists.length; i++) {
 			if(_phAddress == periods[_groupID][_periodIndex].loyalists[i]) {
-				isPolicyholderVoted = true;
+				isVoted = true;
 			}
 		}
 
 		for(uint j=0; j<periods[_groupID][_periodIndex].defectors.length; j++) {
 			if(_phAddress == periods[_groupID][_periodIndex].defectors[j]) {
-				isPolicyholderVoted = true;
+				isVoted = true;
 			}
 		}		
 	}
 
-	function _isPolicyholderHaveClaim(uint _groupID, uint _periodIndex, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool isPolicyholderHaveClaim) {	
+	function _isPolicyholderHaveClaim(uint _groupID, uint _periodIndex, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool isHaveClaim) {	
 		for(uint i=0; i<periods[_groupID][_periodIndex].claims.length; i++) {
 			if(_phAddress == periods[_groupID][_periodIndex].claims[i].claimantAddress) {
-				isPolicyholderHaveClaim = true;
+				isHaveClaim = true;
 			}
 		}
 	}
@@ -479,7 +478,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(bool isClaimRejected) {
+	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(bool isRejected) {
 		address[] defectors = periods[_groupID][_periodIndex].defectors;
 		Claim memory claim = periods[_groupID][_periodIndex].claims[_claimIndex];
 		Policyholder memory pcClaimant = _getPolicyHolder(_groupID, claim.claimantAddress);
@@ -492,7 +491,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 			}
 		}
 
-		isClaimRejected = (count>=2);
+		isRejected = (count>=2);
 	}	
 
 	function _getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
