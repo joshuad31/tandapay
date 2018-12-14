@@ -50,7 +50,7 @@ contract('TandaPayLedger|Functional', (accounts) => {
 	var maxClaimDai = 500e18;
 	
 	describe('Functional tests', function(){
-		/*it('Should return correct values: 3 periods, 8 policyholders, 2 policyholders from 0 subgroup not receive money, 2 policyholders from 1 subgroup receive',async() => {
+		it('Should return correct values: 3 periods, 8 policyholders, 2 policyholders from 0 subgroup not receive money, 2 policyholders from 1 subgroup receive',async() => {
 			daiContract = await DaiContract.new();
 			tandaPayLedger = await TandaPayLedger.new(daiContract.address, backend, cronAccount);		
 			
@@ -122,9 +122,9 @@ contract('TandaPayLedger|Functional', (accounts) => {
 			var balArr = [0, 0, 3*premium, 3*premium, 0, 0, 3*(8-2)*premium/2, 3*(8-2)*premium/2];
 			var pcToBalCheck = [pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]];
 			await checkBalancesForThem(daiContract, pcToBalCheck, balArr);
-		});*/
+		});
 
-		/*it('Should return correct values: 3 periods, 8 policyholders, policyholders not votes, only 1 claim; check that commitPremium at 4th period is not work',async() => {
+		it('Should return correct values: 3 periods, 8 policyholders, policyholders not votes, only 1 claim; check that commitPremium at 4th period is not work',async() => {
 			daiContract = await DaiContract.new();
 			tandaPayLedger = await TandaPayLedger.new(daiContract.address, backend, cronAccount);		
 
@@ -240,7 +240,7 @@ contract('TandaPayLedger|Functional', (accounts) => {
 			var balArr = [premium, premium, premium, premium, premium, premium, premium, premium];
 			var pcToBalCheck = [pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]];
 			await checkBalancesForThem(daiContract, pcToBalCheck, balArr);					
-		});*/
+		});
 
 		it('Should return correct values: 1 period, 8 policyholders, maxClaimDai overfill; check secretary balance',async() => {
 			daiContract = await DaiContract.new();
@@ -318,9 +318,9 @@ contract('TandaPayLedger|Functional', (accounts) => {
 			var pcToBalCheck = [pc[0], pc[1], pc[2], pc[3], pc[4], pc[5], pc[6], pc[7]];
 			await checkBalancesForThem(daiContract, pcToBalCheck, balArr);
 
-			// var secretaryBalanceShouldBe = 8*3*loanRepaymentDai;
-			// var secretaryBalance = await daiContract.balanceOf(secretary);
-			// assert.equal(secretaryBalance.toNumber(), secretaryBalanceShouldBe);
+			var secretaryBalanceShouldBe = 8*3*loanRepaymentDai;
+			var secretaryBalance = await daiContract.balanceOf(secretary);
+			assert.equal(secretaryBalance.toNumber(), secretaryBalanceShouldBe);
 		});
 
 		// it('Should succussfully complete ',async() => {
