@@ -401,6 +401,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	}
 
 	function getAmountToPay(uint _groupID, address _phAddress) public view onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PrePeriod) returns(uint premiumDai, uint overpaymentDai, uint loanRepaymentDai) {
+		require(_getPeriodNumber(_groupID) <= groups[_groupID].monthToRepayTheLoan);
 		premiumDai = _getPremiumToPay(_groupID, _phAddress);
 		overpaymentDai = _getOverpaymentToPay(_groupID, _phAddress);
 		loanRepaymentDai = _getLoanRepaymentToPay(_groupID, _phAddress);
@@ -420,13 +421,44 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		countOut = periods[_groupID][_periodIndex].claims.length;
 	}
 
+	// event premiumToRefundEVENT(uint premiumToRefund, uint premiumsTotalDai, uint premiumToClaims);
 	function processGroup(uint _groupID) public onlyByCron onlyForThisSubperiod(_groupID, SubperiodType.PostPeriod) {
 		uint periodIndex = _getPeriodNumber(_groupID) - 1;
+		uint i;
 		// Send all claimRewards to claimants
-		for(uint claimIndex=0; claimIndex<periods[_groupID][periodIndex].claims.length; claimIndex++) {
-			if(_getClaimState(_groupID, periodIndex, claimIndex) == ClaimState.Finalizing) {
-				_processClaim(_groupID, periodIndex, claimIndex);
+		uint premiumToClaims;
+		for(i=0; i < periods[_groupID][periodIndex].claims.length; i++) {
+			if(_getClaimState(_groupID, periodIndex, i) == ClaimState.Finalizing) {
+				_processClaim(_groupID, periodIndex, i);
+				premiumToClaims += _getClaimAmount(_groupID, periodIndex, i);
 			}
+		}
+
+		// refund for defectors
+		for(i=0; i < periods[_groupID][periodIndex].defectors.length; i++) {
+			daiContract.transfer(periods[_groupID][periodIndex].defectors[i], groups[_groupID].premiumCostDai);
+		}
+
+		// refund premiums
+		uint premiumToRefund = periods[_groupID][periodIndex].premiumsTotalDai 
+						 - (groups[_groupID].premiumCostDai * periods[_groupID][periodIndex].defectors.length) 
+						 - premiumToClaims;
+					
+		uint premiumCount = periods[_groupID][periodIndex].premiumsTotalDai / groups[_groupID].premiumCostDai;
+		// emit premiumToRefundEVENT(premiumToRefund, periods[_groupID][periodIndex].premiumsTotalDai, premiumToClaims);
+		if(premiumToRefund > 0) {
+			for(i=0; i < premiumCount; i++) {
+				daiContract.transfer(policyholders[_groupID][i].phAddress, (premiumToRefund / premiumCount));
+			}
+		}
+		// send money to secretary
+		if(periodIndex == groups[_groupID].monthToRepayTheLoan) {
+			uint loanRepaymentAllPeriods = 0;
+			for(i=1; i<=groups[_groupID].monthToRepayTheLoan; i++) {
+				loanRepaymentAllPeriods += periods[_groupID][i].loanRepaymentTotalDai;
+			}
+			
+			daiContract.transfer(groups[_groupID].secretary, loanRepaymentAllPeriods);
 		}
 	}
 
@@ -477,7 +509,13 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 		uint defected = groups[_groupID].premiumCostDai * periods[_groupID][_periodIndex].defectors.length;
 		uint premiumFund = periods[_groupID][_periodIndex].premiumsTotalDai - defected;
-		return premiumFund / nonRejectedClaimsCount;
+		
+		uint claimAmount = premiumFund / nonRejectedClaimsCount;
+		if(claimAmount <= groups[_groupID].maxClaimDai) {
+			return claimAmount;
+		} else {
+			return groups[_groupID].maxClaimDai;
+		}
 	}
 
 	function _getClaimState(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(ClaimState) {

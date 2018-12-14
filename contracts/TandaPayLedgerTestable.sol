@@ -4,14 +4,15 @@ import "./ITandaPayLedger.sol";
 import "./ITandaPayLedgerInfo.sol";
 
 import "./DaiContract.sol";
-import "./TandaPay.sol";
+import "./TandaPayLedger.sol";
 
 import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 
 contract TandaPayLedgerTestable is TandaPayLedger {
-
-	constructor(address _daiContractAddress, address _backendAccount, address _cronAccount) public 
+	constructor(address _daiContractAddress, 
+			address _backendAccount, 
+			address _cronAccount) public 
 		TandaPayLedger(_daiContractAddress, _backendAccount, _cronAccount){}
 
 	function getPeriodNumber(uint _groupID) public view onlyValidGroupId(_groupID) returns(uint number) {
@@ -78,19 +79,15 @@ contract TandaPayLedgerTestable is TandaPayLedger {
 		return super._getTandaGroupArrayForSecretary(_secretary);
 	}
 
-	function sendClaim(uint _groupID, uint _periodIndex, uint _claimIndex) public correctParams(_groupID, _periodIndex, _claimIndex) {
-		return super._sendClaim(_groupID,  _periodIndex,  _claimIndex);
-	}
-
-	function isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) public correctParams(_groupID, _periodIndex, _claimIndex) view returns(bool isIt) {
+	function isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) public isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(bool isIt) {
 		return super._isClaimRejected(_groupID,  _periodIndex,  _claimIndex);
 	}
 
-	function getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) public correctParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
+	function getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) public isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
 		return super._getClaimAmount(_groupID,  _periodIndex,  _claimIndex);
 	}
 
-	function getClaimState(uint _groupID, uint _periodIndex, uint _claimIndex) public correctParams(_groupID, _periodIndex, _claimIndex) view returns(ClaimState) {
+	function getClaimState(uint _groupID, uint _periodIndex, uint _claimIndex) public isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(ClaimState) {
 		return super._getClaimState(_groupID,  _periodIndex,  _claimIndex);
 	}
 }
