@@ -7,7 +7,10 @@ import "./DaiContract.sol";
 
 import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
-
+/**
+* @title TandaPayLedger
+* @dev ledger contract to create and process tandaGroups
+*/
 contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	DaiContract public daiContract;
 
@@ -117,7 +120,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 			policyholders[groupsCount][i] = p;
 			g.policyholdersCount++;
-		}	
+		}
 		groups[groupsCount] = g;
 		emit NewGroup(groupsCount);
 		groupsCount = groupsCount + 1;
@@ -224,9 +227,8 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	function	_isPolicyholderPremium(uint _groupID, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool) {
-		uint last = _getPolicyHolder(_groupID, _phAddress).lastPeriodPremium;
-		return (last == _getPeriodNumber(_groupID));
+	function	_isPolicyholderPremium(uint _groupID, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool isPremium) {
+		isPremium = (_getPeriodNumber(_groupID) == _getPolicyHolder(_groupID, _phAddress).lastPeriodPremium);	
 	}
 
 	function _getPolicyHolderStatus(uint _groupID, address _phAddress) internal view onlyValidGroupId(_groupID) returns(PolicyholderStatus) {
@@ -262,7 +264,9 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function commitPremium(uint _groupID, uint _amountDai) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PrePeriod) {
 		require(_amountDai==(_getPremiumToPay(_groupID, msg.sender) + _getOverpaymentToPay(_groupID, msg.sender) +_getLoanRepaymentToPay(_groupID, msg.sender)));
-		emit premiumCommited(msg.sender, _amountDai);
+		require(_getPeriodNumber(_groupID)<=groups[_groupID].monthToRepayTheLoan);
+		
+		emit PremiumCommited(msg.sender, _amountDai);
 		daiContract.transferFrom(msg.sender, address(this), _amountDai);
 
 		uint phIndex = _getPolicyHolderNumber(_groupID, msg.sender);
@@ -287,7 +291,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function finalizeClaims(uint _groupID, bool _loyalist) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PostPeriod) {
 		uint periodIndex = _getPeriodNumber(_groupID) - 1;
-		emit claimFinalized(_groupID, periodIndex, _isPolicyholderVoted(_groupID, periodIndex, msg.sender), _isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
+		emit ClaimFinalized(_groupID, periodIndex, _isPolicyholderVoted(_groupID, periodIndex, msg.sender), _isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
 		require(!_isPolicyholderVoted(_groupID, periodIndex, msg.sender));
 		require(!_isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
 
@@ -298,24 +302,24 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	function _isPolicyholderVoted(uint _groupID, uint _periodIndex, address _phAddress)	internal view onlyValidGroupId(_groupID) returns(bool isIt) {
+	function _isPolicyholderVoted(uint _groupID, uint _periodIndex, address _phAddress)	internal view onlyValidGroupId(_groupID) returns(bool isVoted) {
 		for(uint i=0; i<periods[_groupID][_periodIndex].loyalists.length; i++) {
 			if(_phAddress == periods[_groupID][_periodIndex].loyalists[i]) {
-				isIt = true;
+				isVoted = true;
 			}
 		}
 
 		for(uint j=0; j<periods[_groupID][_periodIndex].defectors.length; j++) {
 			if(_phAddress == periods[_groupID][_periodIndex].defectors[j]) {
-				isIt = true;
+				isVoted = true;
 			}
 		}		
 	}
 
-	function _isPolicyholderHaveClaim(uint _groupID, uint _periodIndex, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool isIt) {	
+	function _isPolicyholderHaveClaim(uint _groupID, uint _periodIndex, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool isHaveClaim) {	
 		for(uint i=0; i<periods[_groupID][_periodIndex].claims.length; i++) {
 			if(_phAddress == periods[_groupID][_periodIndex].claims[i].claimantAddress) {
-				isIt = true;
+				isHaveClaim = true;
 			}
 		}
 	}
@@ -345,6 +349,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	function getTandaGroupIDForSecretary(address _secretary, uint _index) public view returns(uint) {
 		uint[] memory idsArr = _getTandaGroupArrayForSecretary(_secretary);
 		require(_index<idsArr.length);
+		
 		return idsArr[_index];
 	}
 
@@ -400,6 +405,8 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	}
 
 	function getAmountToPay(uint _groupID, address _phAddress) public view onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PrePeriod) returns(uint premiumDai, uint overpaymentDai, uint loanRepaymentDai) {
+		require(_getPeriodNumber(_groupID) <= groups[_groupID].monthToRepayTheLoan);
+		
 		premiumDai = _getPremiumToPay(_groupID, _phAddress);
 		overpaymentDai = _getOverpaymentToPay(_groupID, _phAddress);
 		loanRepaymentDai = _getLoanRepaymentToPay(_groupID, _phAddress);
@@ -412,7 +419,6 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function getClaimCount(uint _groupID, uint _periodIndex) public view onlyValidGroupId(_groupID) returns(uint countOut) {
 		require(_periodIndex <= _getPeriodNumber(_groupID));
-		// TODO: are we realy need this require?
 		require((SubperiodType.ActivePeriod==_getSubperiodType(_groupID, _periodIndex))||
 			   (SubperiodType.PostPeriod==_getSubperiodType(_groupID, _periodIndex)));
 
@@ -421,11 +427,41 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function processGroup(uint _groupID) public onlyByCron onlyForThisSubperiod(_groupID, SubperiodType.PostPeriod) {
 		uint periodIndex = _getPeriodNumber(_groupID) - 1;
+		uint i;
 		// Send all claimRewards to claimants
-		for(uint claimIndex=0; claimIndex<periods[_groupID][periodIndex].claims.length; claimIndex++) {
-			if(_getClaimState(_groupID, periodIndex, claimIndex) == ClaimState.Finalizing) {
-				_processClaim(_groupID, periodIndex, claimIndex);
+		uint premiumToClaims;
+		for(i=0; i < periods[_groupID][periodIndex].claims.length; i++) {
+			if(_getClaimState(_groupID, periodIndex, i) == ClaimState.Finalizing) {
+				_processClaim(_groupID, periodIndex, i);
+				premiumToClaims += _getClaimAmount(_groupID, periodIndex, i);
 			}
+		}
+
+		// refund for defectors
+		for(i=0; i < periods[_groupID][periodIndex].defectors.length; i++) {
+			daiContract.transfer(periods[_groupID][periodIndex].defectors[i], groups[_groupID].premiumCostDai);
+		}
+
+		// refund premiums
+		uint premiumToRefund = periods[_groupID][periodIndex].premiumsTotalDai 
+						 - (groups[_groupID].premiumCostDai * periods[_groupID][periodIndex].defectors.length) 
+						 - premiumToClaims;
+					
+		uint premiumCount = periods[_groupID][periodIndex].premiumsTotalDai / groups[_groupID].premiumCostDai;
+		// emit premiumToRefundEVENT(premiumToRefund, periods[_groupID][periodIndex].premiumsTotalDai, premiumToClaims);
+		if(premiumToRefund > 0) {
+			for(i=0; i < premiumCount; i++) {
+				daiContract.transfer(policyholders[_groupID][i].phAddress, (premiumToRefund / premiumCount));
+			}
+		}
+		// send money to secretary
+		if(periodIndex == groups[_groupID].monthToRepayTheLoan) {
+			uint loanRepaymentAllPeriods = 0;
+			for(i=1; i<=groups[_groupID].monthToRepayTheLoan; i++) {
+				loanRepaymentAllPeriods += periods[_groupID][i].loanRepaymentTotalDai;
+			}
+			
+			daiContract.transfer(groups[_groupID].secretary, loanRepaymentAllPeriods);
 		}
 	}
 
@@ -442,7 +478,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(bool isIt) {
+	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(bool isRejected) {
 		address[] defectors = periods[_groupID][_periodIndex].defectors;
 		Claim memory claim = periods[_groupID][_periodIndex].claims[_claimIndex];
 		Policyholder memory pcClaimant = _getPolicyHolder(_groupID, claim.claimantAddress);
@@ -455,9 +491,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 			}
 		}
 
-		if(count>=2) {
-			isIt = true;
-		}
+		isRejected = (count>=2);
 	}	
 
 	function _getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
@@ -467,9 +501,22 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 			return 0;
 		}
 
+		uint nonRejectedClaimsCount = 0;
+		for(uint i=0; i<periods[_groupID][_periodIndex].claims.length; i++) {
+			if(!_isClaimRejected(_groupID, _periodIndex, i)) {
+				nonRejectedClaimsCount++;
+			}
+		}
+
 		uint defected = groups[_groupID].premiumCostDai * periods[_groupID][_periodIndex].defectors.length;
 		uint premiumFund = periods[_groupID][_periodIndex].premiumsTotalDai - defected;
-		return premiumFund / periods[_groupID][_periodIndex].claims.length;
+		
+		uint claimAmount = premiumFund / nonRejectedClaimsCount;
+		if(claimAmount <= groups[_groupID].maxClaimDai) {
+			return claimAmount;
+		} else {
+			return groups[_groupID].maxClaimDai;
+		}
 	}
 
 	function _getClaimState(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(ClaimState) {

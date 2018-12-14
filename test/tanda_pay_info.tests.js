@@ -1074,9 +1074,15 @@ contract('TandaPayLedger', (accounts) => {
 				var balance0 = await daiContract.balanceOf(policyholders[0]);
 				var balance1 = await daiContract.balanceOf(policyholders[1]);
 				var balance2 = await daiContract.balanceOf(policyholders[2]);
-				assert.equal(balance0.toNumber(), 0);
-				assert.equal(balance1.toNumber(), 0);
-				assert.equal(balance2.toNumber(), 0);
+				var balance3 = await daiContract.balanceOf(policyholders[3]);
+				var balance4 = await daiContract.balanceOf(policyholders[4]);
+				var balance5 = await daiContract.balanceOf(policyholders[5]);
+				assert.equal(balance0.toNumber(), premium/2);
+				assert.equal(balance1.toNumber(), premium/2);
+				assert.equal(balance2.toNumber(), premium/2);
+				assert.equal(balance3.toNumber(), premium + premium/2);
+				assert.equal(balance4.toNumber(), premium + premium/2);
+				assert.equal(balance5.toNumber(), premium + premium/2);				
 			});			
 		});
 	});
