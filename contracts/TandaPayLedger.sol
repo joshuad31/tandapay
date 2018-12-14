@@ -263,7 +263,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	function commitPremium(uint _groupID, uint _amountDai) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PrePeriod) {
 		require(_amountDai==(_getPremiumToPay(_groupID, msg.sender) + _getOverpaymentToPay(_groupID, msg.sender) +_getLoanRepaymentToPay(_groupID, msg.sender)));
 		require(_getPeriodNumber(_groupID)<=groups[_groupID].monthToRepayTheLoan);
-		emit premiumCommited(msg.sender, _amountDai);
+		emit PremiumCommited(msg.sender, _amountDai);
 		daiContract.transferFrom(msg.sender, address(this), _amountDai);
 
 		uint phIndex = _getPolicyHolderNumber(_groupID, msg.sender);
@@ -288,7 +288,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function finalizeClaims(uint _groupID, bool _loyalist) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PostPeriod) {
 		uint periodIndex = _getPeriodNumber(_groupID) - 1;
-		emit claimFinalized(_groupID, periodIndex, _isPolicyholderVoted(_groupID, periodIndex, msg.sender), _isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
+		emit ClaimFinalized(_groupID, periodIndex, _isPolicyholderVoted(_groupID, periodIndex, msg.sender), _isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
 		require(!_isPolicyholderVoted(_groupID, periodIndex, msg.sender));
 		require(!_isPolicyholderHaveClaim(_groupID, periodIndex, msg.sender));
 
@@ -299,24 +299,24 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	function _isPolicyholderVoted(uint _groupID, uint _periodIndex, address _phAddress)	internal view onlyValidGroupId(_groupID) returns(bool isIt) {
+	function _isPolicyholderVoted(uint _groupID, uint _periodIndex, address _phAddress)	internal view onlyValidGroupId(_groupID) returns(bool isPolicyholderVoted) {
 		for(uint i=0; i<periods[_groupID][_periodIndex].loyalists.length; i++) {
 			if(_phAddress == periods[_groupID][_periodIndex].loyalists[i]) {
-				isIt = true;
+				isPolicyholderVoted = true;
 			}
 		}
 
 		for(uint j=0; j<periods[_groupID][_periodIndex].defectors.length; j++) {
 			if(_phAddress == periods[_groupID][_periodIndex].defectors[j]) {
-				isIt = true;
+				isPolicyholderVoted = true;
 			}
 		}		
 	}
 
-	function _isPolicyholderHaveClaim(uint _groupID, uint _periodIndex, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool isIt) {	
+	function _isPolicyholderHaveClaim(uint _groupID, uint _periodIndex, address _phAddress) internal view onlyValidGroupId(_groupID) returns(bool isPolicyholderHaveClaim) {	
 		for(uint i=0; i<periods[_groupID][_periodIndex].claims.length; i++) {
 			if(_phAddress == periods[_groupID][_periodIndex].claims[i].claimantAddress) {
-				isIt = true;
+				isPolicyholderHaveClaim = true;
 			}
 		}
 	}
@@ -421,7 +421,6 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		countOut = periods[_groupID][_periodIndex].claims.length;
 	}
 
-	// event premiumToRefundEVENT(uint premiumToRefund, uint premiumsTotalDai, uint premiumToClaims);
 	function processGroup(uint _groupID) public onlyByCron onlyForThisSubperiod(_groupID, SubperiodType.PostPeriod) {
 		uint periodIndex = _getPeriodNumber(_groupID) - 1;
 		uint i;
@@ -475,7 +474,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 	}
 
-	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(bool isIt) {
+	function _isClaimRejected(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(bool isClaimRejected) {
 		address[] defectors = periods[_groupID][_periodIndex].defectors;
 		Claim memory claim = periods[_groupID][_periodIndex].claims[_claimIndex];
 		Policyholder memory pcClaimant = _getPolicyHolder(_groupID, claim.claimantAddress);
@@ -489,7 +488,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 		}
 
 		if(count>=2) {
-			isIt = true;
+			isClaimRejected = true;
 		}
 	}	
 
