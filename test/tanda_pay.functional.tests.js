@@ -1,5 +1,4 @@
 var TandaPayLedger = artifacts.require("./TandaPayLedger");
-var TandaPayBase = artifacts.require("./TandaPayBase");
 var DaiContract = artifacts.require("./DaiContract");
 
 const time = require('./helpers/time');
