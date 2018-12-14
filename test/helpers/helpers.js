@@ -109,7 +109,11 @@ async function finalizeClaimsForThem(tandaPayLedger, backend, id, pcArr, ansArr)
 async function checkBalancesForThem(daiContract, pcArr, balArr) {
 	for(var i=0; i<pcArr.length; i++) {
 		var balance = await daiContract.balanceOf(pcArr[i]);
-		assert.equal(balance, balArr[i]);
+		if(typeof(pcArr[i])==="object"){
+			assert.equal(balance.toNumber(), balArr[i].toNumber());
+		} else {
+			assert.equal(balance.toNumber(), balArr[i]);
+		}
 	}
 }
 
