@@ -9,6 +9,10 @@ import "./TandaPayLedger.sol";
 import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 
+/**
+* @title TandaPayLedgerTestable 
+* @dev for test purposes; internal functions -> public
+*/
 contract TandaPayLedgerTestable is TandaPayLedger {
 	constructor(address _daiContractAddress, 
 			address _backendAccount, 

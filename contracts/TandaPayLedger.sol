@@ -7,7 +7,10 @@ import "./DaiContract.sol";
 
 import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
-
+/**
+* @title TandaPayLedger
+* @dev ledger contract to create and process tandaGroups
+*/
 contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	DaiContract public daiContract;
 
@@ -263,6 +266,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	function commitPremium(uint _groupID, uint _amountDai) public onlyPolicyholder(_groupID, msg.sender) onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PrePeriod) {
 		require(_amountDai==(_getPremiumToPay(_groupID, msg.sender) + _getOverpaymentToPay(_groupID, msg.sender) +_getLoanRepaymentToPay(_groupID, msg.sender)));
 		require(_getPeriodNumber(_groupID)<=groups[_groupID].monthToRepayTheLoan);
+		
 		emit PremiumCommited(msg.sender, _amountDai);
 		daiContract.transferFrom(msg.sender, address(this), _amountDai);
 
@@ -346,6 +350,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 	function getTandaGroupIDForSecretary(address _secretary, uint _index) public view returns(uint) {
 		uint[] memory idsArr = _getTandaGroupArrayForSecretary(_secretary);
 		require(_index<idsArr.length);
+		
 		return idsArr[_index];
 	}
 
@@ -402,6 +407,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function getAmountToPay(uint _groupID, address _phAddress) public view onlyValidGroupId(_groupID) onlyForThisSubperiod(_groupID, SubperiodType.PrePeriod) returns(uint premiumDai, uint overpaymentDai, uint loanRepaymentDai) {
 		require(_getPeriodNumber(_groupID) <= groups[_groupID].monthToRepayTheLoan);
+		
 		premiumDai = _getPremiumToPay(_groupID, _phAddress);
 		overpaymentDai = _getOverpaymentToPay(_groupID, _phAddress);
 		loanRepaymentDai = _getLoanRepaymentToPay(_groupID, _phAddress);
@@ -414,7 +420,6 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 
 	function getClaimCount(uint _groupID, uint _periodIndex) public view onlyValidGroupId(_groupID) returns(uint countOut) {
 		require(_periodIndex <= _getPeriodNumber(_groupID));
-		// TODO: are we realy need this require?
 		require((SubperiodType.ActivePeriod==_getSubperiodType(_groupID, _periodIndex))||
 			   (SubperiodType.PostPeriod==_getSubperiodType(_groupID, _periodIndex)));
 
@@ -487,9 +492,7 @@ contract TandaPayLedger is ITandaPayLedger, ITandaPayLedgerInfo {
 			}
 		}
 
-		if(count>=2) {
-			isClaimRejected = true;
-		}
+		isClaimRejected = (count>=2);
 	}	
 
 	function _getClaimAmount(uint _groupID, uint _periodIndex, uint _claimIndex) internal isCorrectParams(_groupID, _periodIndex, _claimIndex) view returns(uint) {
