@@ -26,8 +26,8 @@ contract ITandaPayLedgerInfo {
 
 	struct Policyholder {
 		uint subgroup;
-		uint bufferedSubgroup;
-		uint bufferedSubgroupFromPeriod;
+		uint nextSubgroup;
+		uint nextSubgroupFromPeriod;
 		address phAddress;
 		uint lastPeriodPremium;
 	}
@@ -100,12 +100,12 @@ contract ITandaPayLedgerInfo {
 
 	/**
 	* @dev Get the policyholder Info
-	* @notice If no subgroup change is requested -> currentSubgroupIndex==bufferedSubgroupIndex
+	* @notice If no subgroup change is requested -> currentSubgroupIndex==nextSubgroupIndex
 	* @param _groupID Selected group ID
 	* @param _policyholder Selected policyholder address
 	*/
 	function getPolicyholderInfo(uint _groupID, address _policyholder) public view 
-		returns(uint currentSubgroupIndex, uint bufferedSubgroupIndex, PolicyholderStatus status);
+		returns(uint currentSubgroupIndex, uint nextSubgroupIndex, PolicyholderStatus status);
 
 	/**
 	* @dev Get the amount that should be paid by a policyholder for the current period 
